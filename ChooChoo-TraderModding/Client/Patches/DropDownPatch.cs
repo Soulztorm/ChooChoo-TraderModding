@@ -58,7 +58,6 @@ namespace TraderModding
         [PatchPostfix]
         private static void PostFix()
         {
-            ConsoleScreen.LogError("Close");
             // Destroy all previous overlays, if any
             foreach (var go in Globals.itemsInUseOverlays)
             {
