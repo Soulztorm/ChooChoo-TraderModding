@@ -4,10 +4,10 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
 
-[assembly: AssemblyVersion("0.7.0.0")]
-[assembly: AssemblyCompany("ChooChoo-TraderModding")]
+[assembly: AssemblyVersion("1.2.0.0")]
+[assembly: AssemblyCompany("Choo²")]
 [assembly: AssemblyConfiguration("Release")]
-[assembly: AssemblyFileVersion("0.7.0.0")]
+[assembly: AssemblyFileVersion("1.2.0.0")]
 [assembly: AssemblyInformationalVersion("1.0.0")]
-[assembly: AssemblyProduct("ChooChoo-TraderModding")]
-[assembly: AssemblyTitle("ChooChoo-TraderModding")]
+[assembly: AssemblyProduct("Choo²-TraderModding")]
+[assembly: AssemblyTitle("Choo²-TraderModding")]
