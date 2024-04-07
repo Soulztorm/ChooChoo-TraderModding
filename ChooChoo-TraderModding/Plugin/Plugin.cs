@@ -10,7 +10,6 @@ namespace Plugin
 		{
 			new EditBuildScreenPatch().Enable();
 			new EditBuildScreenShowPatch().Enable();
-			new EditBuildScreenUseAvailablePatch().Enable();
 		}
 	}
 }

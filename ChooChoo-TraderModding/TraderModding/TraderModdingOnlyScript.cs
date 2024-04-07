@@ -59,8 +59,7 @@ namespace TraderModding
             InventoryControllerClass inventoryControllerClass = new InventoryControllerClass(profile, false, null);
 
             // Get all usable mods on the player and not on any weapon
-            List<Item> allItems = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All).ToList<Item>();
-            Item[] playeritems_usable_mods = allItems.Where(new Func<Item, bool>(__instance.method_16)).ToArray<Item>();
+            Item[] playeritems_usable_mods = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All).Where(new Func<Item, bool>(__instance.method_16)).ToArray<Item>();
 
             List<string> allmods_player = playeritems_usable_mods.Select(mod => mod.TemplateId).ToList();
 
