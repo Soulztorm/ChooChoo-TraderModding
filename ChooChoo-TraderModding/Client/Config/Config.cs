@@ -11,7 +11,7 @@ namespace TraderModding.Config
             ShowAttachedItems = config.Bind(
                 "Trader Modding", 
                 "ShowAttachedItems", 
-                false, 
+                true, 
                 new ConfigDescription("When showing only trader available items (And loose mods), should we also show mods that are alread attached to other weapons?", 
                 null, 
                 new ConfigurationManagerAttributes { Order = 0 }));

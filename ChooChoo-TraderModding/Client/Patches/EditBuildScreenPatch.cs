@@ -31,6 +31,7 @@ namespace TraderModding
             script.__instance = __instance;
             script.onlyAvailableToggle = onlyavail.GetComponent<Toggle>();
             script.onlyTradersToggle = onlyTradersCheckbox.GetComponent<Toggle>();
+            script.onlyTradersToggle.isOn = true;
 
             script.onlyTradersToggle.onValueChanged.AddListener(new UnityAction<bool>(script.ToggleTradersOnlyView));
 
