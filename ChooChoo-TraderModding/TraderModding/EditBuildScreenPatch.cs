@@ -61,6 +61,9 @@ namespace TraderModding
             // Get the trader items
             script.GetTraderItems();
 
+            // Get items in use
+            script.GetItemsInUse();
+
             // Let's also fix BSG's bug that closing and reopening the modding screen can have the checkbox on without any effect
             bool onlyAvailableTicked = onlyavailable.GetComponent<Toggle>().isOn;
             if (onlyAvailableTicked) 

@@ -7,13 +7,8 @@ using EFT;
 using EFT.UI;
 using EFT.InventoryLogic;
 using UnityEngine;
-using System.Threading.Tasks;
-using Aki.Common.Http;
-using Newtonsoft.Json;
 using UnityEngine.UI;
-using UnityEngine.Events;
 using TraderModding.Config;
-using UnityEngine.Profiling;
 
 namespace TraderModding
 {
@@ -24,7 +19,7 @@ namespace TraderModding
         public Toggle onlyTradersToggle;
         public Item weaponBody = null;
 
-        string[] tradermods;
+        string[] traderMods;
         
         public void ToggleTradersOnlyView(bool tradersOnly)
         {
@@ -78,7 +73,7 @@ namespace TraderModding
             foreach (Item item in allmods)
             {
                 if (onlyTradersToggle.isOn && !
-                    (tradermods.Contains(item.TemplateId) ||
+                    (traderMods.Contains(item.TemplateId) ||
                     allmods_gun.Contains(item.TemplateId) || 
                     allmods_stash.Contains(item.TemplateId) || 
                     allmods_player.Contains(item.TemplateId))) 
@@ -96,7 +91,7 @@ namespace TraderModding
         public void GetTraderItems()
         {
             // Get all mods available from traders
-            tradermods = TraderModdingUtils.GetData();
+            traderMods = TraderModdingUtils.GetData();
         }
 
         List<string> GetItems_Player(ref Item[] playeritems_usable_mods, bool showAttachedItems)
@@ -117,6 +112,30 @@ namespace TraderModding
                 return stashArray.GetAllItemsFromCollections().Select(mod => mod.TemplateId).ToList();
             else
                 return stashArray.GetAllItemsFromCollections().Where(new Func<Item, bool>(__instance.method_16)).Select(mod => mod.TemplateId).ToList();
+        }
+
+        public void GetItemsInUse()
+        {
+            Profile profile = (Profile)AccessTools.Field(typeof(EditBuildScreen), "profile_0").GetValue(__instance);
+            LootItemClass[] stashArray = new LootItemClass[] { profile.Inventory.Stash };
+
+            var looseItemsStash = stashArray.GetAllItemsFromCollections().Where(new Func<Item, bool>(__instance.method_16)).Select(mod => mod.TemplateId).ToList();
+            var looseItemsPlayer = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All).Where(new Func<Item, bool>(__instance.method_16)).Select(mod => mod.TemplateId).ToList();
+
+            //var stashItemsInUse = stashArray.GetAllItemsFromCollections().
+            //    //Where(item => !__instance.method_16(item) && !looseItemsStash.Contains(item.TemplateId)).
+            //    Where(item => !looseItemsStash.Contains(item.TemplateId)).
+            //    Select(mod => mod.TemplateId).ToList();
+
+            var playerItemsInUse = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All).
+                //Where(item => !__instance.method_16(item) && !looseItemsPlayer.Contains(item.TemplateId)).
+                Where(item => !looseItemsPlayer.Contains(item.TemplateId) && !looseItemsStash.Contains(item.TemplateId)).
+                Select(mod => mod.TemplateId).ToList();
+
+            //stashItemsInUse.AddRange(playerItemsInUse);
+            //Globals.itemsInUse = stashItemsInUse.ToArray();
+
+            Globals.itemsInUse = playerItemsInUse.ToArray();
         }
     }
 }
