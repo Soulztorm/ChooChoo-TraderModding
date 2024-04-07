@@ -69,6 +69,8 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\Config.cs" />
+    <Compile Include="Config\ConfigurationManagerAttributes.cs" />
     <Compile Include="TraderModding\EditBuildScreenPatch.cs" />
     <Compile Include="Plugin\Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

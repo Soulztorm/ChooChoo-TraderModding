@@ -1,14 +1,16 @@
 ﻿using BepInEx;
-using TraderModding;
+using TraderModding.Config;
 
-namespace Plugin
+namespace TraderModding
 {
-	[BepInPlugin("com.ChooChoo.TraderModding", "Choo² Trader Modding", "0.7.0")]
-	public class Plugin : BaseUnityPlugin
+	[BepInPlugin("choo.choo.tradermodding", "Choo² Trader Modding", "1.2.0")]
+	public class TraderModdingPlugin : BaseUnityPlugin
 	{
 		private void Awake()
 		{
-			new EditBuildScreenPatch().Enable();
+			TraderModdingConfig.InitConfig(Config);
+
+            new EditBuildScreenPatch().Enable();
 			new EditBuildScreenShowPatch().Enable();
 		}
 	}

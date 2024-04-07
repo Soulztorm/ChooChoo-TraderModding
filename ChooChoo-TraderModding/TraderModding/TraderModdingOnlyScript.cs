@@ -12,6 +12,8 @@ using Aki.Common.Http;
 using Newtonsoft.Json;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using TraderModding.Config;
+using UnityEngine.Profiling;
 
 namespace TraderModding
 {
@@ -59,20 +61,19 @@ namespace TraderModding
             InventoryControllerClass inventoryControllerClass = new InventoryControllerClass(profile, false, null);
 
             // Get all usable mods on the player and not on any weapon
-            Item[] playeritems_usable_mods = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All).Where(new Func<Item, bool>(__instance.method_16)).ToArray<Item>();
-
-            List<string> allmods_player = playeritems_usable_mods.Select(mod => mod.TemplateId).ToList();
+            Item[] playeritems_usable_mods = { };
+            List<string> allmods_player = GetItems_Player(ref playeritems_usable_mods, TraderModdingConfig.ShowAttachedItems.Value);
 
             // Get all mods in stash that are not alread on any other gun
-            LootItemClass[] array2 = new LootItemClass[] { profile.Inventory.Stash };
-            List<string> allmods_stash = array2.GetAllItemsFromCollections().Where(new Func<Item, bool>(__instance.method_16)).Select(mod => mod.TemplateId).ToList();
-            
-            StashClass stashClass = itemFactory.CreateFakeStash(null);
-            stashClass.Grids[0] = new GClass2500(Guid.NewGuid().ToString(), 30, 1, true, Array.Empty<ItemFilter>(), stashClass);
-            TraderControllerClass traderControllerClass = new TraderControllerClass(stashClass, "here lies profile id", Guid.NewGuid().ToString(), false, EOwnerType.Profile, null, null);
+            List<string> allmods_stash = GetItems_Stash(profile, TraderModdingConfig.ShowAttachedItems.Value);
 
             // Get all mods that are already on the gun we are modding
             List<string> allmods_gun = weaponBody.GetAllItems().Select(mod => mod.TemplateId).ToList();
+
+
+            StashClass stashClass = itemFactory.CreateFakeStash(null);
+            stashClass.Grids[0] = new GClass2500(Guid.NewGuid().ToString(), 30, 1, true, Array.Empty<ItemFilter>(), stashClass);
+            TraderControllerClass traderControllerClass = new TraderControllerClass(stashClass, "here lies profile id", Guid.NewGuid().ToString(), false, EOwnerType.Profile, null, null);
             
             foreach (Item item in allmods)
             {
@@ -96,6 +97,26 @@ namespace TraderModding
         {
             // Get all mods available from traders
             tradermods = TraderModdingUtils.GetData();
+        }
+
+        List<string> GetItems_Player(ref Item[] playeritems_usable_mods, bool showAttachedItems)
+        {
+            if (showAttachedItems)
+                playeritems_usable_mods = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All).ToArray<Item>();
+            else
+                playeritems_usable_mods = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All).Where(new Func<Item, bool>(__instance.method_16)).ToArray<Item>();
+
+            return playeritems_usable_mods.Select(mod => mod.TemplateId).ToList();
+        }
+
+        List<string> GetItems_Stash(Profile profile, bool showAttachedItems)
+        {
+            LootItemClass[] stashArray = new LootItemClass[] { profile.Inventory.Stash };
+
+            if (showAttachedItems)
+                return stashArray.GetAllItemsFromCollections().Select(mod => mod.TemplateId).ToList();
+            else
+                return stashArray.GetAllItemsFromCollections().Where(new Func<Item, bool>(__instance.method_16)).Select(mod => mod.TemplateId).ToList();
         }
     }
 }
