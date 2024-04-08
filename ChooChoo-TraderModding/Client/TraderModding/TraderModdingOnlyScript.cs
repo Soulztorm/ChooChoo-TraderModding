@@ -20,7 +20,7 @@ namespace TraderModding
         public Item weaponBody = null;
 
         string[] traderMods;
-        
+
         public void ToggleTradersOnlyView(bool tradersOnly)
         {
             if (tradersOnly && onlyAvailableToggle.isOn)
@@ -59,12 +59,8 @@ namespace TraderModding
             Item[] playeritems_usable_mods = { };
             List<string> allmods_player = GetItems_Player(ref playeritems_usable_mods, TraderModdingConfig.ShowAttachedItems.Value);
 
-            // Get all mods in stash that are not alread on any other gun
-            List<string> allmods_stash = GetItems_Stash(profile, TraderModdingConfig.ShowAttachedItems.Value);
-
             // Get all mods that are already on the gun we are modding
             List<string> allmods_gun = weaponBody.GetAllItems().Select(mod => mod.TemplateId).ToList();
-
 
             StashClass stashClass = itemFactory.CreateFakeStash(null);
             stashClass.Grids[0] = new GClass2500(Guid.NewGuid().ToString(), 30, 1, true, Array.Empty<ItemFilter>(), stashClass);
@@ -75,7 +71,6 @@ namespace TraderModding
                 if (onlyTradersToggle.isOn && !
                     (traderMods.Contains(item.TemplateId) ||
                     allmods_gun.Contains(item.TemplateId) || 
-                    allmods_stash.Contains(item.TemplateId) || 
                     allmods_player.Contains(item.TemplateId))) 
                     continue;
 
@@ -104,38 +99,17 @@ namespace TraderModding
             return playeritems_usable_mods.Select(mod => mod.TemplateId).ToList();
         }
 
-        List<string> GetItems_Stash(Profile profile, bool showAttachedItems)
-        {
-            LootItemClass[] stashArray = new LootItemClass[] { profile.Inventory.Stash };
-
-            if (showAttachedItems)
-                return stashArray.GetAllItemsFromCollections().Select(mod => mod.TemplateId).ToList();
-            else
-                return stashArray.GetAllItemsFromCollections().Where(new Func<Item, bool>(__instance.method_16)).Select(mod => mod.TemplateId).ToList();
-        }
-
         public void GetItemsInUse()
         {
-            Profile profile = (Profile)AccessTools.Field(typeof(EditBuildScreen), "profile_0").GetValue(__instance);
-            LootItemClass[] stashArray = new LootItemClass[] { profile.Inventory.Stash };
+            var allPlayerItems = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All);
+            var looseItemsPlayer = allPlayerItems.Where(new Func<Item, bool>(__instance.method_16)).Select(mod => mod.TemplateId).ToList();
 
-            var looseItemsStash = stashArray.GetAllItemsFromCollections().Where(new Func<Item, bool>(__instance.method_16)).Select(mod => mod.TemplateId).ToList();
-            var looseItemsPlayer = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All).Where(new Func<Item, bool>(__instance.method_16)).Select(mod => mod.TemplateId).ToList();
-
-            //var stashItemsInUse = stashArray.GetAllItemsFromCollections().
-            //    //Where(item => !__instance.method_16(item) && !looseItemsStash.Contains(item.TemplateId)).
-            //    Where(item => !looseItemsStash.Contains(item.TemplateId)).
-            //    Select(mod => mod.TemplateId).ToList();
-
-            var playerItemsInUse = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All).
-                //Where(item => !__instance.method_16(item) && !looseItemsPlayer.Contains(item.TemplateId)).
-                Where(item => !looseItemsPlayer.Contains(item.TemplateId) && !looseItemsStash.Contains(item.TemplateId)).
+            var playerItemsInUse = allPlayerItems.
+                Where(item => !looseItemsPlayer.Contains(item.TemplateId)).
                 Select(mod => mod.TemplateId).ToList();
 
-            //stashItemsInUse.AddRange(playerItemsInUse);
-            //Globals.itemsInUse = stashItemsInUse.ToArray();
-
             Globals.itemsInUse = playerItemsInUse.ToArray();
+            Globals.itemsAvailable = looseItemsPlayer.ToArray();
         }
     }
 }

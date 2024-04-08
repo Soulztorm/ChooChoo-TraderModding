@@ -27,23 +27,25 @@ namespace TraderModding
         [PatchPostfix]
         private static void PostFix(DropDownMenu __instance, Item item, ref RectTransform container)
         {
-            if (!TraderModdingConfig.ShowAttachedItems.Value)
+            Color backGroundColor;
+
+            if (TraderModdingConfig.ShowAttachedItems.Value && Globals.itemsInUse.Contains(item.TemplateId))
+                backGroundColor = new Color(1.0f, 1.0f, 0.0f, 0.4f);
+            else if(Globals.itemsAvailable.Contains(item.TemplateId))
+                backGroundColor = new Color(0.2f, 1.0f, 0.0f, 0.3f);
+            else      
                 return;
+            
+            Transform lastChild = container.transform.GetChild(container.transform.childCount - 1);
+            GameObject colorPanel = lastChild.Find("Color Panel").gameObject;
 
-            if (Globals.itemsInUse.Contains(item.TemplateId))
-            {
-                Transform lastChild = container.transform.GetChild(container.transform.childCount - 1);
-                GameObject colorPanel = lastChild.Find("Color Panel").gameObject;
+            GameObject colorPanelCopy = GameObject.Instantiate(colorPanel);
+            colorPanelCopy.transform.SetParent(lastChild, false);
+            colorPanelCopy.transform.SetSiblingIndex(colorPanel.transform.GetSiblingIndex() + 1);
+            Image backgroundImage = colorPanelCopy.GetComponent<Image>();
+            backgroundImage.color = backGroundColor;
 
-                GameObject colorPanelCopy = GameObject.Instantiate(colorPanel);
-                colorPanelCopy.name = "ItemInUseOverlay";
-                colorPanelCopy.transform.SetParent(lastChild, false);
-                colorPanelCopy.transform.SetSiblingIndex(colorPanel.transform.GetSiblingIndex() + 1);
-                Image backgroundImage = colorPanelCopy.GetComponent<Image>();
-                backgroundImage.color = new Color(1.0f, 1.0f, 0.0f, 0.4f);
-
-                Globals.itemsInUseOverlays.Add(colorPanelCopy);
-            }   
+            Globals.itemsInUseOverlays.Add(colorPanelCopy);           
         }
     }
 
