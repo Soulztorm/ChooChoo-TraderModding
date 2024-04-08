@@ -40,10 +40,36 @@ namespace TraderModding
 
             __instance.method_41(onlyAvailable);
         }
+        bool IsItemUsable(Item itemToCheck)
+        {
+            if (itemToCheck == null)
+                return false;
+
+            if (__instance.InventoryController.IsItemEquipped(itemToCheck))
+                return false;
+
+            if (itemToCheck.IsChildOf(weaponBody))
+                return true;
+
+
+            Item currentParent = itemToCheck.Parent.Container.ParentItem;
+            while (currentParent != null)
+            {
+                if (currentParent.IsContainer)
+                    return true;
+
+                if (!(currentParent is Mod))
+                    return false;
+
+                currentParent = currentParent.Parent.Container.ParentItem;
+            }
+
+            return false;
+        }
 
         public void UpdateModView()
         {
-            // If we only want to see available mods, do nothing
+            // If we only want to see available mods the BSG way (kekw), do nothing
             if (onlyAvailableToggle.isOn) 
                 return;
 
@@ -60,7 +86,7 @@ namespace TraderModding
             List<string> allmods_player = GetItems_Player(ref playeritems_usable_mods, TraderModdingConfig.ShowAttachedItems.Value);
 
             // Get all mods that are already on the gun we are modding
-            List<string> allmods_gun = weaponBody.GetAllItems().Select(mod => mod.TemplateId).ToList();
+            List<string> allmods_gun = weaponBody.GetAllItems().OfType<Mod>().Select(mod => mod.TemplateId).ToList();
 
             StashClass stashClass = itemFactory.CreateFakeStash(null);
             stashClass.Grids[0] = new GClass2500(Guid.NewGuid().ToString(), 30, 1, true, Array.Empty<ItemFilter>(), stashClass);
@@ -94,7 +120,7 @@ namespace TraderModding
             if (showAttachedItems)
                 playeritems_usable_mods = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All).ToArray<Item>();
             else
-                playeritems_usable_mods = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All).Where(new Func<Item, bool>(__instance.method_16)).ToArray<Item>();
+                playeritems_usable_mods = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All).Where(IsItemUsable).ToArray<Item>();
 
             return playeritems_usable_mods.Select(mod => mod.TemplateId).ToList();
         }
@@ -102,7 +128,7 @@ namespace TraderModding
         public void GetItemsInUse()
         {
             var allPlayerItems = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All);
-            var looseItemsPlayer = allPlayerItems.Where(new Func<Item, bool>(__instance.method_16)).Select(mod => mod.TemplateId).ToList();
+            var looseItemsPlayer = allPlayerItems.Where(IsItemUsable).Select(mod => mod.TemplateId).ToList();
 
             var playerItemsInUse = allPlayerItems.
                 Where(item => !looseItemsPlayer.Contains(item.TemplateId)).
