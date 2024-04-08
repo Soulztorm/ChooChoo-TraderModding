@@ -29,10 +29,10 @@ namespace TraderModding
         {
             Color backGroundColor;
 
-            if (TraderModdingConfig.ShowAttachedItems.Value && Globals.itemsInUse.Contains(item.TemplateId))
-                backGroundColor = new Color(1.0f, 1.0f, 0.0f, 0.4f);
-            else if(Globals.itemsAvailable.Contains(item.TemplateId))
-                backGroundColor = new Color(0.2f, 1.0f, 0.0f, 0.3f);
+            if (TraderModdingConfig.HighlightAttachedItems.Value && Globals.itemsInUse.Contains(item.TemplateId))
+                backGroundColor = TraderModdingConfig.ColorAttached.Value;
+            else if(TraderModdingConfig.HighlightUsableItems.Value && Globals.itemsAvailable.Contains(item.TemplateId))
+                backGroundColor = TraderModdingConfig.ColorUsable.Value;
             else      
                 return;
             

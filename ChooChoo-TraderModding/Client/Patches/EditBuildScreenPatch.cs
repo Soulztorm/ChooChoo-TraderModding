@@ -2,6 +2,7 @@ using System.Reflection;
 using Aki.Reflection.Patching;
 using EFT.UI;
 using HarmonyLib;
+using TraderModding.Config;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -31,7 +32,7 @@ namespace TraderModding
             script.__instance = __instance;
             script.onlyAvailableToggle = onlyavail.GetComponent<Toggle>();
             script.onlyTradersToggle = onlyTradersCheckbox.GetComponent<Toggle>();
-            script.onlyTradersToggle.isOn = true;
+            script.onlyTradersToggle.isOn = TraderModdingConfig.DefaultToTraderOnly.Value;
 
             script.onlyTradersToggle.onValueChanged.AddListener(new UnityAction<bool>(script.ToggleTradersOnlyView));
 
