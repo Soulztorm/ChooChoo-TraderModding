@@ -26,7 +26,8 @@ namespace TraderModding
             onlyTradersCheckbox.name = "OnlyTraders";
             onlyTradersCheckbox.transform.SetParent(togglegroup.transform, false);
             LocalizedText labelText = onlyTradersCheckbox.GetComponentInChildren<LocalizedText>();
-            labelText.LocalizationKey = "Use only trader items";
+            labelText.LocalizationKey =  TraderModdingConfig.InvertTraderSelection.Value ? "Use NO trader items" : "Use only trader items";
+            Globals.traderOnlyCheckboxText = labelText;
 
             TraderModdingOnlyScript script = onlyTradersCheckbox.AddComponent<TraderModdingOnlyScript>();
             script.__instance = __instance;
@@ -39,6 +40,9 @@ namespace TraderModding
             // Replace original only available listener with ours
             script.onlyAvailableToggle.onValueChanged.RemoveAllListeners();
             script.onlyAvailableToggle.onValueChanged.AddListener(new UnityAction<bool>(script.ToggleOnlyAvailableView));
+
+            // Reference to script
+            Globals.script = script;
         }
     }
 

@@ -70,7 +70,7 @@ namespace TraderModding
         public void UpdateModView()
         {
             // If we only want to see available mods the BSG way (kekw), do nothing
-            if (onlyAvailableToggle.isOn) 
+            if (__instance.enabled && onlyAvailableToggle.isOn) 
                 return;
 
             // Get all mods that exist
@@ -94,11 +94,15 @@ namespace TraderModding
             
             foreach (Item item in allmods)
             {
-                if (onlyTradersToggle.isOn && !
-                    (traderMods.Contains(item.TemplateId) ||
-                    allmods_gun.Contains(item.TemplateId) || 
-                    allmods_player.Contains(item.TemplateId))) 
-                    continue;
+                if (onlyTradersToggle.isOn)
+                {
+                    bool tradeOrNoTrade = TraderModdingConfig.InvertTraderSelection.Value ? !traderMods.Contains(item.TemplateId) : traderMods.Contains(item.TemplateId);
+                    if (!(
+                        tradeOrNoTrade ||
+                        allmods_gun.Contains(item.TemplateId) ||
+                        allmods_player.Contains(item.TemplateId)))
+                        continue;
+                } 
 
                 item.StackObjectsCount = item.StackMaxSize;
                 stashClass.Grid.Add(item);
