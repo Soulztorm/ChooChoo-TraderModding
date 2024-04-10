@@ -40,6 +40,12 @@ namespace TraderModding
 
             __instance.method_41(onlyAvailable);
         }
+
+        bool IsLooseItem(Item item)
+        {
+            return (item.CurrentAddress is GClass2769 && item.Parent.Container.ParentItem.IsContainer);
+        }
+
         bool IsItemUsable(Item itemToCheck)
         {
             if (itemToCheck == null)
@@ -51,18 +57,28 @@ namespace TraderModding
             if (itemToCheck.IsChildOf(weaponBody))
                 return true;
 
+            if (itemToCheck is Weapon)
+                return false;
 
-            Item currentParent = itemToCheck.Parent.Container.ParentItem;
-            while (currentParent != null)
-            {
-                if (currentParent.IsContainer)
-                    return true;
+            if (IsLooseItem(itemToCheck))
+                return true;
 
-                if (!(currentParent is Mod))
-                    return false;
 
-                currentParent = currentParent.Parent.Container.ParentItem;
-            }
+
+
+            //Item currentParent = itemToCheck.Parent.Container.ParentItem;
+            //while (currentParent != null)
+            //{
+            //    if (currentParent.IsContainer)
+            //        return true;
+
+            //    if (!(currentParent is Mod))
+            //        return false;
+
+            //    currentParent = currentParent.Parent.Container.ParentItem;
+            //}
+
+
 
             return false;
         }
@@ -140,6 +156,11 @@ namespace TraderModding
 
             Globals.itemsInUse = playerItemsInUse.ToArray();
             Globals.itemsAvailable = looseItemsPlayer.ToArray();
+        }
+
+        public void GetItemsInUseNotPurchasable()
+        {
+            Globals.itemsInUseNonBuyable = Globals.itemsInUse.Where(item => !traderMods.Contains(item)).ToArray();
         }
     }
 }

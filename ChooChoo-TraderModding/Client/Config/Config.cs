@@ -13,6 +13,7 @@ namespace TraderModding.Config
         private const string HighlightAttachedSectionTitle = "2. Attached Items";
         public static ConfigEntry<bool> HighlightAttachedItems;
         public static ConfigEntry<Color> ColorAttached;
+        public static ConfigEntry<Color> ColorAttachedNonBuyable;
 
         private const string HighlightUsableSectionTitle = "3. Usable Items";
         public static ConfigEntry<bool> HighlightUsableItems;
@@ -52,11 +53,11 @@ namespace TraderModding.Config
 
             ShowAttachedItems = config.Bind(
                 HighlightAttachedSectionTitle,
-                "Show attached items",
+                "Show attached items (Not purchasable)",
                 true,
-                new ConfigDescription("Show items that are already attached to other weapons",
+                new ConfigDescription("Show items that are already attached to other weapons, but not purchasable from traders",
                 null,
-                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 2 })
+                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 3 })
                 );
             ShowAttachedItems.SettingChanged += UpdateModView;
 
@@ -66,18 +67,24 @@ namespace TraderModding.Config
                 true,
                 new ConfigDescription("Highlight items that are already attached to other weapons",
                 null,
-                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 1 }));
+                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 2 }));
             HighlightAttachedItems.SettingChanged += UpdateModView;
 
             ColorAttached = config.Bind(
                 HighlightAttachedSectionTitle,
-                "Color for already attached items",
+                "Color for attached items (Buyable)",
                 new Color(1.0f, 1.0f, 0.0f, 0.4f),
-                new ConfigDescription("What color to use when highlighting attached items?",
+                new ConfigDescription("What color to use when highlighting attached items that you can buy from traders?",
+                null,
+                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 1 }));
+
+            ColorAttachedNonBuyable = config.Bind(
+                HighlightAttachedSectionTitle,
+                "Color for attached items (Non buyable)",
+                new Color(1.0f, 0.5f, 0.0f, 0.4f),
+                new ConfigDescription("What color to use when highlighting attached items that are NOT purchasable by traders?",
                 null,
                 new ConfigurationManagerAttributes { IsAdvanced = false, Order = 0 }));
-
-
 
 
             InvertTraderSelection = config.Bind(
