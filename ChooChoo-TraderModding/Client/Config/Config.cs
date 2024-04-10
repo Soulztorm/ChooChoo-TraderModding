@@ -8,9 +8,10 @@ namespace TraderModding.Config
     {
         private const string GeneralSectionTitle = "1. General";
         public static ConfigEntry<bool> DefaultToTraderOnly;
-        public static ConfigEntry<bool> ShowAttachedItems;
+        public static ConfigEntry<bool> ColorBorders;
 
         private const string HighlightAttachedSectionTitle = "2. Attached Items";
+        public static ConfigEntry<bool> ShowAttachedItems;
         public static ConfigEntry<bool> HighlightAttachedItems;
         public static ConfigEntry<Color> ColorAttached;
         public static ConfigEntry<Color> ColorAttachedNonBuyable;
@@ -24,38 +25,34 @@ namespace TraderModding.Config
 
         public static void InitConfig(ConfigFile config)
         {
+            // GENERAL
             DefaultToTraderOnly = config.Bind(
                 GeneralSectionTitle, 
                 "Default to trader only view", 
-                true, 
-                "When the edit preset screen opens for the first time after game launch, or after a raid, should it default to only show trader items?");
-            
-            
-
-            HighlightUsableItems = config.Bind(
-                HighlightUsableSectionTitle, 
-                "Highlight usable items", 
                 true,
-                new ConfigDescription("Highlight directly usable (Ultimately not attached to any gun) items",
+                new ConfigDescription("When the edit preset screen opens for the first time after game launch, or after a raid, should it default to only show trader items?",
                 null,
                 new ConfigurationManagerAttributes { IsAdvanced = false, Order = 1 })
-                );
-            HighlightUsableItems.SettingChanged += UpdateModView;
+            );
 
-            ColorUsable = config.Bind(
-                HighlightUsableSectionTitle, 
-                "Color for usable items", 
-                new Color(0.2f, 1.0f, 0.0f, 0.3f),
-                new ConfigDescription("What color to use when highlighting usable items?",
+            ColorBorders = config.Bind(
+                GeneralSectionTitle,
+                "Color borders",
+                true,
+                new ConfigDescription("Color the borders of all mod slots in the preset screen according to availability",
                 null,
-                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 0 }));
+                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 0 })
+                );
+            ColorBorders.SettingChanged += UpdateModView;
 
 
+
+            // ATTACHED ITEMS
             ShowAttachedItems = config.Bind(
                 HighlightAttachedSectionTitle,
-                "Show attached items (Not purchasable)",
+                "Show attached items (Not buyable)",
                 true,
-                new ConfigDescription("Show items that are already attached to other weapons, but not purchasable from traders",
+                new ConfigDescription("Show items that are already attached to other weapons, but not currently purchasable from traders",
                 null,
                 new ConfigurationManagerAttributes { IsAdvanced = false, Order = 3 })
                 );
@@ -63,9 +60,9 @@ namespace TraderModding.Config
 
             HighlightAttachedItems = config.Bind(
                 HighlightAttachedSectionTitle, 
-                "Highlight already attached items", 
+                "Highlight attached items", 
                 true,
-                new ConfigDescription("Highlight items that are already attached to other weapons",
+                new ConfigDescription("Highlight items that are already attached to other weapons (Doesn't work 100% perfectly)",
                 null,
                 new ConfigurationManagerAttributes { IsAdvanced = false, Order = 2 }));
             HighlightAttachedItems.SettingChanged += UpdateModView;
@@ -74,17 +71,39 @@ namespace TraderModding.Config
                 HighlightAttachedSectionTitle,
                 "Color for attached items (Buyable)",
                 new Color(1.0f, 1.0f, 0.0f, 0.4f),
-                new ConfigDescription("What color to use when highlighting attached items that you can buy from traders?",
+                new ConfigDescription("What color to use when highlighting attached items that you can buy from traders",
                 null,
                 new ConfigurationManagerAttributes { IsAdvanced = false, Order = 1 }));
 
             ColorAttachedNonBuyable = config.Bind(
                 HighlightAttachedSectionTitle,
-                "Color for attached items (Non buyable)",
+                "Color for attached items (Not buyable)",
                 new Color(1.0f, 0.5f, 0.0f, 0.4f),
-                new ConfigDescription("What color to use when highlighting attached items that are NOT purchasable by traders?",
+                new ConfigDescription("What color to use when highlighting attached items that are NOT purchasable by traders",
                 null,
                 new ConfigurationManagerAttributes { IsAdvanced = false, Order = 0 }));
+
+
+
+            // USABLE ITEMS
+            HighlightUsableItems = config.Bind(
+                HighlightUsableSectionTitle,
+                "Highlight usable items",
+                true,
+                new ConfigDescription("Highlight directly usable (Ultimately not attached to any gun) items",
+                null,
+                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 1 })
+                );
+            HighlightUsableItems.SettingChanged += UpdateModView;
+
+            ColorUsable = config.Bind(
+                HighlightUsableSectionTitle,
+                "Color for usable items",
+                new Color(0.2f, 1.0f, 0.0f, 0.3f),
+                new ConfigDescription("What color to use when highlighting usable items?",
+                null,
+                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 0 }));
+
 
 
             InvertTraderSelection = config.Bind(

@@ -60,27 +60,7 @@ namespace TraderModding
             if (itemToCheck is Weapon)
                 return false;
 
-            if (IsLooseItem(itemToCheck))
-                return true;
-
-
-
-
-            //Item currentParent = itemToCheck.Parent.Container.ParentItem;
-            //while (currentParent != null)
-            //{
-            //    if (currentParent.IsContainer)
-            //        return true;
-
-            //    if (!(currentParent is Mod))
-            //        return false;
-
-            //    currentParent = currentParent.Parent.Container.ParentItem;
-            //}
-
-
-
-            return false;
+            return IsLooseItem(itemToCheck);
         }
 
         public void UpdateModView()

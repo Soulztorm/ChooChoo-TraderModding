@@ -29,6 +29,13 @@ namespace TraderModding
         [PatchPostfix]
         private static void PostFix(DropDownMenu __instance, Item item, ref RectTransform container)
         {
+            Transform lastChild = container.transform.GetChild(container.transform.childCount - 1);
+            if (lastChild == null) return;
+
+            // Restore borders in case they are out of the pool and we modified them
+            RestoreBorder(lastChild);
+
+            // Color backgrounds if any
             Color backGroundColor;
 
             if (TraderModdingConfig.HighlightAttachedItems.Value && Globals.itemsInUseNonBuyable.Contains(item.TemplateId))
@@ -39,8 +46,8 @@ namespace TraderModding
                 backGroundColor = TraderModdingConfig.ColorUsable.Value;
             else      
                 return;
-            
-            Transform lastChild = container.transform.GetChild(container.transform.childCount - 1);
+
+
             GameObject colorPanel = lastChild.Find("Color Panel").gameObject;
 
             GameObject colorPanelCopy = GameObject.Instantiate(colorPanel);
@@ -49,7 +56,29 @@ namespace TraderModding
             Image backgroundImage = colorPanelCopy.GetComponent<Image>();
             backgroundImage.color = backGroundColor;
 
-            Globals.itemsInUseOverlays.Add(colorPanelCopy);           
+            Globals.itemsInUseOverlays.Add(colorPanelCopy);
+        }
+
+        public static void RestoreBorder(Transform borderParentItem)
+        {
+            Transform borderTransform = borderParentItem.Find("Border");
+            if (borderTransform != null)
+            {
+                // Border
+                Image borderImg = borderTransform.GetComponent<Image>();
+                RectTransform borderRect = borderTransform.GetComponent<RectTransform>();
+                borderImg.color = new Color(0.2863f, 0.3176f, 0.3294f, 1f);
+                borderImg.type = Image.Type.Sliced;
+                borderRect.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+
+                // Shadow
+                Transform borderShadowTransform = borderParentItem.Find("Border Shadow");
+                if (borderShadowTransform != null)
+                {
+                    Image borderShadow = borderShadowTransform.GetComponent<Image>();
+                    borderShadow.color = new Color(1f, 1f, 1f, 1f);
+                }
+            }
         }
     }
 
@@ -69,6 +98,7 @@ namespace TraderModding
             {
                 GameObject.Destroy(go);
             }
+            Globals.itemsInUseOverlays.Clear();
         }
     }
 
@@ -84,69 +114,59 @@ namespace TraderModding
         [PatchPostfix]
         private static void PostFix(ModdingScreenSlotView __instance, LootItemClass item)
         {
-            ConsoleScreen.Log("Parent: " + __instance.transform.parent.name); 
             if (__instance.transform.parent.name != "Slots Container")
                 return;
 
-            Transform modding_menu_item = __instance.transform.Find("modding_menu_item");
-            if (modding_menu_item == null) return;
-            ConsoleScreen.Log("Found modding_menu_item");
-
-
-            Transform item_view_container = modding_menu_item.Find("ItemViewContainer");
+            Transform item_view_container = __instance.transform.Find("modding_menu_item/ItemViewContainer");
             if (item_view_container == null) return;
-            ConsoleScreen.Log("Found ItemViewContainer");
 
             Transform modView = item_view_container.GetChild(0);
             if (modView == null) return;
-            ConsoleScreen.Log("Found modView");
-
-            //Transform colorPanelTransform = modView.Find("Color Panel");
-            //if (colorPanelTransform == null) return;
-
-            //Transform customColorPanel = modView.Find("CustomColorPanel");
-            //if (customColorPanel != null) 
-            //    GameObject.Destroy(customColorPanel);
 
 
-            Transform borderTransform = modView.Find("Border");
-            if (borderTransform == null) return;
-
-            Image borderImg = borderTransform.GetComponent<Image>();
-            RectTransform borderRect = borderTransform.GetComponent<RectTransform>();
-
-            Transform borderShadowTransform = modView.Find("Border Shadow");
-            Image borderShadow = borderShadowTransform.GetComponent<Image>();
-
-            bool defaultBorder = false;
-            Color backGroundColor;
-
-            if (TraderModdingConfig.HighlightAttachedItems.Value && Globals.itemsInUseNonBuyable.Contains(item.TemplateId))
-                backGroundColor = TraderModdingConfig.ColorAttachedNonBuyable.Value;
-            else if (TraderModdingConfig.HighlightAttachedItems.Value && Globals.itemsInUse.Contains(item.TemplateId))
-                backGroundColor = TraderModdingConfig.ColorAttached.Value;
-            else if (TraderModdingConfig.HighlightUsableItems.Value && Globals.itemsAvailable.Contains(item.TemplateId))
-                backGroundColor = TraderModdingConfig.ColorUsable.Value;
+            if (!TraderModdingConfig.ColorBorders.Value)
+                DropDownPatch.RestoreBorder(modView);
             else
             {
-                defaultBorder = true;
-                backGroundColor = new Color(0.2941f, 0.3098f, 0.3216f, 1f);
-            }
+                Transform borderTransform = modView.Find("Border");
+                if (borderTransform == null) return;
 
-            borderImg.color = backGroundColor;
-            borderShadow.color = backGroundColor;
+                Image borderImg = borderTransform.GetComponent<Image>();
+                RectTransform borderRect = borderTransform.GetComponent<RectTransform>();
 
-            if (defaultBorder)
-            {
-                borderImg.type = Image.Type.Sliced;
-                borderRect.localScale = new Vector3(1.0f, 1.0f, 0.0f);
-            }
-            else
-            {
-                borderShadow.color.SetAlpha(1.0f);
-                borderImg.color.SetAlpha(1.0f);
-                borderImg.type = Image.Type.Simple;
-                borderRect.localScale = new Vector3(1.1f, 1.1f, 0.0f);
+                Transform borderShadowTransform = modView.Find("Border Shadow");
+                Image borderShadow = borderShadowTransform.GetComponent<Image>();
+
+                bool defaultBorder = false;
+                Color backGroundColor;
+
+                if (TraderModdingConfig.HighlightAttachedItems.Value && Globals.itemsInUseNonBuyable.Contains(item.TemplateId))
+                    backGroundColor = TraderModdingConfig.ColorAttachedNonBuyable.Value;
+                else if (TraderModdingConfig.HighlightAttachedItems.Value && Globals.itemsInUse.Contains(item.TemplateId))
+                    backGroundColor = TraderModdingConfig.ColorAttached.Value;
+                else if (TraderModdingConfig.HighlightUsableItems.Value && Globals.itemsAvailable.Contains(item.TemplateId))
+                    backGroundColor = TraderModdingConfig.ColorUsable.Value;
+                else
+                {
+                    defaultBorder = true;
+                    backGroundColor = new Color(0.2941f, 0.3098f, 0.3216f, 1f);
+                }
+
+                borderImg.color = backGroundColor;
+                borderShadow.color = backGroundColor;
+
+                if (defaultBorder)
+                {
+                    borderImg.type = Image.Type.Sliced;
+                    borderRect.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+                }
+                else
+                {
+                    borderShadow.color.SetAlpha(1.0f);
+                    borderImg.color.SetAlpha(1.0f);
+                    borderImg.type = Image.Type.Simple;
+                    borderRect.localScale = new Vector3(1.1f, 1.1f, 1.0f);
+                }
             }
         }
     }
