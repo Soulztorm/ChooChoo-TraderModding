@@ -72,6 +72,7 @@ namespace TraderModding.Config
                 null,
                 new ConfigurationManagerAttributes { IsAdvanced = false, Order = 1 })
             );
+            ShowPriceTags.SettingChanged += UpdateModView;
 
             ShowPriceTagsOnWeaponItems = config.Bind(
                 TraderPricesTitle,
@@ -81,6 +82,7 @@ namespace TraderModding.Config
                 null,
                 new ConfigurationManagerAttributes { IsAdvanced = false, Order = 0 })
             );
+            ShowPriceTagsOnWeaponItems.SettingChanged += UpdateModView;
 
 
 

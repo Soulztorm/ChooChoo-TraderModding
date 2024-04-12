@@ -162,7 +162,7 @@ namespace TraderModding
             TraderModdingUtils.RemoveExistingPriceTag(modView);
 
             // Show the price tag if the part is not already on the gun
-            if (TraderModdingConfig.ShowPriceTags.Value && TraderModdingConfig.ShowPriceTagsOnWeaponItems.Value && !Globals.itemsOnGun.Contains(item.TemplateId))
+            if (TraderModdingConfig.ShowPriceTagsOnWeaponItems.Value || (TraderModdingConfig.ShowPriceTags.Value && !Globals.itemsOnGun.Contains(item.TemplateId)))
                 TraderModdingUtils.AddItemPriceTag(modView, item, false);
         }
     }
