@@ -5,15 +5,15 @@ using Newtonsoft.Json;
 using UnityEngine.UI;
 using UnityEngine;
 using System.Linq;
-using TraderModding.Config;
+using ChooChooTraderModding.Config;
 
-namespace TraderModding
+namespace ChooChooTraderModding
 {
 	public class TraderModdingUtils
 	{
 		public static ModAndCost[] GetTraderMods()
 		{
-			string json = RequestHandler.GetJson("/trader-modding/json");
+			string json = RequestHandler.GetJson("/choochoo-trader-modding/json");
 			return JsonConvert.DeserializeObject<ModAndCost[]>(json);
 		}
 

@@ -3,12 +3,12 @@ using System.Threading.Tasks;
 using Aki.Reflection.Patching;
 using EFT.UI;
 using HarmonyLib;
-using TraderModding.Config;
+using ChooChooTraderModding.Config;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace TraderModding
+namespace ChooChooTraderModding
 {
     public class EditBuildScreenPatch : ModulePatch
     {

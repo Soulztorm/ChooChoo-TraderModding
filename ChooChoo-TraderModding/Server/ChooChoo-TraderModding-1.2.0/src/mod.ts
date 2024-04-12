@@ -3,7 +3,7 @@
 // Credit to wara for the original server mod to receive trader offers!!
 // =====================================================================
 //
-// Tradermodding 1.2.0 servermod - by ChooChoo / wara
+// Tradermodding 1.4.0 servermod - by ChooChoo / wara
 // 
 
 import { DependencyContainer } from "tsyringe";
@@ -15,7 +15,7 @@ import { ItemHelper } from "@spt-aki/helpers/ItemHelper";
 import { BaseClasses } from "@spt-aki/models/enums/BaseClasses";
 import { IBarterScheme } from "@spt-aki/models/eft/common/tables/ITrader";
 
-class TraderModding implements IPreAkiLoadMod {
+class ChooChooTraderModding implements IPreAkiLoadMod {
 
     public preAkiLoad(container: DependencyContainer): void {
         const staticRouterModService = container.resolve<StaticRouterModService>("StaticRouterModService");
@@ -24,14 +24,14 @@ class TraderModding implements IPreAkiLoadMod {
             "TraderModdingRouter",
             [
                 {
-                    url: "/trader-modding/json",
+                    url: "/choochoo-trader-modding/json",
                     action: (url, info, sessionId, output) => {
                         const json = this.getTraderMods(container, sessionId);
                         return json;
                     }
                 }
             ],
-            "trader-modding"
+            "choochoo-trader-modding"
         );
     }
 
@@ -115,10 +115,8 @@ class TraderModding implements IPreAkiLoadMod {
         const moneyIndex = money.findIndex((string) => string == barter_scheme._tpl);
         if (moneyIndex == -1)
             return "";
-
-
-        
+     
         return Math.ceil(barter_scheme.count).toString() + money_symbols[moneyIndex];
     }
 }
-module.exports = { mod: new TraderModding() }
+module.exports = { mod: new ChooChooTraderModding() }

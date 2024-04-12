@@ -1,7 +1,7 @@
 ﻿using BepInEx;
-using TraderModding.Config;
+using ChooChooTraderModding.Config;
 
-namespace TraderModding
+namespace ChooChooTraderModding
 {
 	[BepInPlugin("choo.choo.tradermodding", "Choo² Trader Modding", "1.3.2")]
 	public class TraderModdingPlugin : BaseUnityPlugin

@@ -2,15 +2,13 @@ using System.Linq;
 using System.Reflection;
 using Aki.Reflection.Patching;
 using EFT.InventoryLogic;
-using EFT.UI;
-using EFT.UI.DragAndDrop;
 using EFT.UI.WeaponModding;
 using HarmonyLib;
-using TraderModding.Config;
+using ChooChooTraderModding.Config;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace TraderModding
+namespace ChooChooTraderModding
 {
     public class DropDownPatch : ModulePatch
     {

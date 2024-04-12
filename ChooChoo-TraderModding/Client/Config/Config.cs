@@ -2,7 +2,7 @@ using BepInEx.Configuration;
 using System;
 using UnityEngine;
 
-namespace TraderModding.Config
+namespace ChooChooTraderModding.Config
 {
     internal static class TraderModdingConfig
     {

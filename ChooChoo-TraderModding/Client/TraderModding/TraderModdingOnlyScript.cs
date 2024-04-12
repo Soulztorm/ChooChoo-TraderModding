@@ -8,9 +8,9 @@ using EFT.UI;
 using EFT.InventoryLogic;
 using UnityEngine;
 using UnityEngine.UI;
-using TraderModding.Config;
+using ChooChooTraderModding.Config;
 
-namespace TraderModding
+namespace ChooChooTraderModding
 {
     public class TraderModdingOnlyScript : MonoBehaviour
     {

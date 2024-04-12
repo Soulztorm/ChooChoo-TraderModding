@@ -2,7 +2,7 @@ using EFT.UI;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace TraderModding
+namespace ChooChooTraderModding
 {
     public static class Globals
     {
