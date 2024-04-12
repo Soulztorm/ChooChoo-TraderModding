@@ -81,8 +81,7 @@ namespace TraderModding
             Item[] playeritems_usable_mods = { };
             List<string> allmods_player = GetItems_Player(ref playeritems_usable_mods, TraderModdingConfig.ShowAttachedItems.Value);
 
-            // Get all mods that are already on the gun we are modding
-            List<string> allmods_gun = weaponBody.GetAllItems().OfType<Mod>().Select(mod => mod.TemplateId).ToList();
+            GetItemsOnGun();
 
             StashClass stashClass = itemFactory.CreateFakeStash(null);
             stashClass.Grids[0] = new GClass2500(Guid.NewGuid().ToString(), 30, 1, true, Array.Empty<ItemFilter>(), stashClass);
@@ -95,7 +94,7 @@ namespace TraderModding
                     bool traderHasMod = traderMods.Any(mod => mod.tpl == item.TemplateId);
                     if (!(
                         (TraderModdingConfig.InvertTraderSelection.Value ? !traderHasMod : traderHasMod) ||
-                        allmods_gun.Contains(item.TemplateId) ||
+                        Globals.itemsOnGun.Contains(item.TemplateId) ||
                         allmods_player.Contains(item.TemplateId)))
                         continue;
                 } 
@@ -120,14 +119,11 @@ namespace TraderModding
                 try
                 {
                     Globals.traderModsTplCost.Add(mod.tpl, mod.cost);
-                    //ConsoleScreen.Log(mod.tpl + " = " + mod.cost);
                 }
                 catch (Exception e)
                 {
                 }
             }
-
-            //ConsoleScreen.Log("Done: " + Globals.traderModsTplCost.Count.ToString());
         }
 
         List<string> GetItems_Player(ref Item[] playeritems_usable_mods, bool showAttachedItems)
@@ -156,6 +152,13 @@ namespace TraderModding
         public void GetItemsInUseNotPurchasable()
         {
             Globals.itemsInUseNonBuyable = Globals.itemsInUse.Where(item => !traderMods.Any(mod => mod.tpl == item)).ToArray();
+        }
+
+        public void GetItemsOnGun()
+        {
+            // Get all mods that are already on the gun we are modding
+            List<string> allmods_gun = weaponBody.GetAllItems().OfType<Mod>().Select(mod => mod.TemplateId).ToList();
+            Globals.itemsOnGun = allmods_gun.ToArray();
         }
     }
 }

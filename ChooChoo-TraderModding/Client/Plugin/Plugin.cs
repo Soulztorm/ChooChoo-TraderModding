@@ -12,6 +12,8 @@ namespace TraderModding
 
             new EditBuildScreenPatch().Enable();
 			new EditBuildScreenShowPatch().Enable();
+			new EditBuildScreenClosePatch().Enable();
+			new EditBuildScreenAssembledWeaponPatch().Enable();
 			new DropDownPatch().Enable();
 			new DropDownPatchDeleteOverlays().Enable();
 			new ModdingScreenSlotViewPatch().Enable();

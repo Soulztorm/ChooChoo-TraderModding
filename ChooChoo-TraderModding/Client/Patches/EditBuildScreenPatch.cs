@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Threading.Tasks;
 using Aki.Reflection.Patching;
 using EFT.UI;
 using HarmonyLib;
@@ -85,6 +86,41 @@ namespace TraderModding
             }
             else
                 __instance.method_41(false);
+        }
+    }
+
+    public class EditBuildScreenClosePatch : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.FirstMethod(typeof(EditBuildScreen),
+                x => x.Name == nameof(EditBuildScreen.Close));
+        }
+
+        [PatchPostfix]
+        public static void Postfix(EditBuildScreen __instance)
+        {
+            Globals.itemsOnGun = new string[0];
+        }
+    }
+
+    public class EditBuildScreenAssembledWeaponPatch : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.FirstMethod(typeof(GClass2832),
+                x => x.Name == nameof(GClass2832.Assemble));
+        }
+
+        [PatchPostfix]
+        public static async void Postfix(Task<bool> __result)
+        {
+            bool assembled = await __result;
+
+            if (assembled)
+            {
+                Globals.script.UpdateModView();
+            }
         }
     }
 }

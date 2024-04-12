@@ -48,7 +48,7 @@ class TraderModding implements IPreAkiLoadMod {
 
         // Roubles, Dollars, Euros
         const money = ["5449016a4bdc2d6f028b456f", "5696686a4bdc2da3298b456a", "569668774bdc2da2298b4568"]
-        const money_symbols = [" ₽", " $", " €"]
+        const money_symbols = ["<color=#c4bc89> ₽</color>", "<color=#03d100> $</color>", "<color=#0073de> €</color>"]
 
         // add custom traders defined in the config file
         for (const trader of modConfig.customTraderIds) {
@@ -115,6 +115,8 @@ class TraderModding implements IPreAkiLoadMod {
         const moneyIndex = money.findIndex((string) => string == barter_scheme._tpl);
         if (moneyIndex == -1)
             return "";
+
+
         
         return Math.ceil(barter_scheme.count).toString() + money_symbols[moneyIndex];
     }
