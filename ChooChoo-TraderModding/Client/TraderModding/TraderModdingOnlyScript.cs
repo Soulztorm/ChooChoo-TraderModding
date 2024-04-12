@@ -120,14 +120,14 @@ namespace TraderModding
                 try
                 {
                     Globals.traderModsTplCost.Add(mod.tpl, mod.cost);
-                    ConsoleScreen.LogError(mod.tpl + " = " + mod.cost);
+                    //ConsoleScreen.Log(mod.tpl + " = " + mod.cost);
                 }
                 catch (Exception e)
                 {
                 }
             }
 
-            ConsoleScreen.LogError("Done: " + Globals.traderModsTplCost.Count.ToString());
+            //ConsoleScreen.Log("Done: " + Globals.traderModsTplCost.Count.ToString());
         }
 
         List<string> GetItems_Player(ref Item[] playeritems_usable_mods, bool showAttachedItems)

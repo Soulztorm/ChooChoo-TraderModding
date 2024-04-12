@@ -14,7 +14,6 @@ import * as modConfig from "../config/config.json";
 import { ItemHelper } from "@spt-aki/helpers/ItemHelper";
 import { BaseClasses } from "@spt-aki/models/enums/BaseClasses";
 import { IBarterScheme } from "@spt-aki/models/eft/common/tables/ITrader";
-import { ProfileHelper } from "@spt-aki/helpers/ProfileHelper";
 
 class TraderModding implements IPreAkiLoadMod {
 
@@ -47,7 +46,9 @@ class TraderModding implements IPreAkiLoadMod {
             "5c0647fdd443bc2504c2d371"
         ];
 
+        // Roubles, Dollars, Euros
         const money = ["5449016a4bdc2d6f028b456f", "5696686a4bdc2da3298b456a", "569668774bdc2da2298b4568"]
+        const money_symbols = [" ₽", " $", " €"]
 
         // add custom traders defined in the config file
         for (const trader of modConfig.customTraderIds) {
@@ -56,14 +57,16 @@ class TraderModding implements IPreAkiLoadMod {
 
         const traderAssortHelper = container.resolve<TraderAssortHelper>("TraderAssortHelper");
         const itemHelper = container.resolve<ItemHelper>("ItemHelper");
-        const profileHelper = container.resolve<ProfileHelper>("ProfileHelper");
         let addedByUnlimitedCount = false;
 
-        const allModAssorts: string[] = [];
+        type ModAndCost = {
+            tpl: string;
+            cost: string;
+        }
+        const allModAssorts: ModAndCost[] = [];
 
         for (const trader of allTraderIds) {
             const traderAssort = traderAssortHelper.getAssort(sessionId, trader, false);
-            const jsontest = JSON.stringify(traderAssort)
 
             for (const item of traderAssort.items) {
                 addedByUnlimitedCount = false;
@@ -71,18 +74,20 @@ class TraderModding implements IPreAkiLoadMod {
                 if (itemHelper.isOfBaseclass(item._tpl, BaseClasses.MOD)) {
                     if (traderAssort.barter_scheme[item._id] !== undefined) {
                         // for now no barter offers. Eventually might add the option to toggle it on in the config but I don't feel like it rn
-                        if (!this.isBarterOffer(traderAssort.barter_scheme[item._id][0][0], money)) {
-                            if (item.upd !== undefined) {
+                        const barterOffer = traderAssort.barter_scheme[item._id][0][0];
+                        if (!this.isBarterOffer(barterOffer, money)) {
+                            if (item.upd !== undefined) { 
+                                const mac: ModAndCost  = { "tpl": item._tpl, "cost": this.getCostString(barterOffer, money, money_symbols)};
                                 if (item.upd.UnlimitedCount !== undefined) {
                                     // probably unnecessary but to be safe.
                                     if (item.upd.UnlimitedCount == true) {
-                                        allModAssorts.push(item._tpl);
+                                        allModAssorts.push(mac);
                                         addedByUnlimitedCount = true;
                                     }
                                 }
                                 if (item.upd.StackObjectsCount !== undefined && !addedByUnlimitedCount) {
                                     if (item.upd.StackObjectsCount > 0) {
-                                        allModAssorts.push(item._tpl)
+                                        allModAssorts.push(mac);
                                     }
                                 }
                             }
@@ -93,6 +98,8 @@ class TraderModding implements IPreAkiLoadMod {
         }
 
         const json = JSON.stringify(allModAssorts);
+
+        //console.log(json);
         
         return json;
     }
@@ -102,6 +109,14 @@ class TraderModding implements IPreAkiLoadMod {
             return false;
         }
         return true;
+    }
+
+    public getCostString(barter_scheme: IBarterScheme, money: string[], money_symbols: string[]) : string {
+        const moneyIndex = money.findIndex((string) => string == barter_scheme._tpl);
+        if (moneyIndex == -1)
+            return "";
+        
+        return Math.ceil(barter_scheme.count).toString() + money_symbols[moneyIndex];
     }
 }
 module.exports = { mod: new TraderModding() }
