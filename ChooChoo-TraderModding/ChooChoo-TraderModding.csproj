@@ -58,6 +58,10 @@
       <HintPath>..\..\References145\Sirenix.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
+    <Reference Include="Unity.TextMeshPro, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\References145\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\References145\UnityEngine.dll</HintPath>
     </Reference>

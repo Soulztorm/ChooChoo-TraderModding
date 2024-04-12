@@ -6,15 +6,15 @@ namespace TraderModding
 {
 	public class TraderModdingUtils
 	{
-		public static string[] GetTraderMods()
+		public static ModAndCost[] GetTraderMods()
 		{
 			string json = RequestHandler.GetJson("/trader-modding/json");
-			return JsonConvert.DeserializeObject<string[]>(json);
+			return JsonConvert.DeserializeObject<ModAndCost[]>(json);
 		}
 
-		public static string[] GetData()
+		public static ModAndCost[] GetData()
 		{
-			string[] mods = null;
+            ModAndCost[] mods = null;
 			Task task = Task.Run(delegate
 			{
 				mods = TraderModdingUtils.GetTraderMods();
@@ -22,5 +22,11 @@ namespace TraderModding
 			task.Wait();
 			return mods;
 		}
+	}
+
+	public class ModAndCost
+	{
+		public string tpl;
+		public string cost;
 	}
 }

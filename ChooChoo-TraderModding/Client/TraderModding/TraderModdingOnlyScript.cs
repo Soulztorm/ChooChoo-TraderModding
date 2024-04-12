@@ -19,7 +19,7 @@ namespace TraderModding
         public Toggle onlyTradersToggle;
         public Item weaponBody = null;
 
-        string[] traderMods;
+        ModAndCost[] traderMods;
 
         public void ToggleTradersOnlyView(bool tradersOnly)
         {
@@ -92,9 +92,9 @@ namespace TraderModding
             {
                 if (onlyTradersToggle.isOn)
                 {
-                    bool tradeOrNoTrade = TraderModdingConfig.InvertTraderSelection.Value ? !traderMods.Contains(item.TemplateId) : traderMods.Contains(item.TemplateId);
+                    bool traderHasMod = traderMods.Any(mod => mod.tpl == item.TemplateId);
                     if (!(
-                        tradeOrNoTrade ||
+                        (TraderModdingConfig.InvertTraderSelection.Value ? !traderHasMod : traderHasMod) ||
                         allmods_gun.Contains(item.TemplateId) ||
                         allmods_player.Contains(item.TemplateId)))
                         continue;
@@ -113,6 +113,21 @@ namespace TraderModding
         {
             // Get all mods available from traders
             traderMods = TraderModdingUtils.GetData();
+
+            Globals.traderModsTplCost.Clear();
+            foreach (ModAndCost mod in traderMods)
+            {
+                try
+                {
+                    Globals.traderModsTplCost.Add(mod.tpl, mod.cost);
+                    ConsoleScreen.LogError(mod.tpl + " = " + mod.cost);
+                }
+                catch (Exception e)
+                {
+                }
+            }
+
+            ConsoleScreen.LogError("Done: " + Globals.traderModsTplCost.Count.ToString());
         }
 
         List<string> GetItems_Player(ref Item[] playeritems_usable_mods, bool showAttachedItems)
@@ -140,7 +155,7 @@ namespace TraderModding
 
         public void GetItemsInUseNotPurchasable()
         {
-            Globals.itemsInUseNonBuyable = Globals.itemsInUse.Where(item => !traderMods.Contains(item)).ToArray();
+            Globals.itemsInUseNonBuyable = Globals.itemsInUse.Where(item => !traderMods.Any(mod => mod.tpl == item)).ToArray();
         }
     }
 }
