@@ -58,6 +58,8 @@ namespace ChooChooTraderModding
         [PatchPostfix]
         public static void Postfix(EditBuildScreen __instance, EditBuildScreen.GClass3126 controller)
         {
+            Globals.isOnModdingScreen = true;
+
             GameObject togglegroup = __instance.transform.Find("Toggle Group").gameObject;
             GameObject onlyavailable = togglegroup.transform.Find("OnlyAvailable").gameObject;
             GameObject onlytraders = togglegroup.transform.Find("OnlyTraders").gameObject;
@@ -100,7 +102,12 @@ namespace ChooChooTraderModding
         [PatchPostfix]
         public static void Postfix(EditBuildScreen __instance)
         {
+            Globals.isOnModdingScreen = false;
             Globals.itemsOnGun = new string[0];
+            Globals.itemsInUse = new string[0];
+            Globals.itemsInUseNonBuyable = new string[0];
+            Globals.itemsAvailable = new string[0];
+            Globals.traderModsTplCost.Clear();
         }
     }
 
@@ -115,11 +122,14 @@ namespace ChooChooTraderModding
         [PatchPostfix]
         public static async void Postfix(Task<bool> __result)
         {
-            bool assembled = await __result;
-
-            if (assembled)
+            if (Globals.isOnModdingScreen)
             {
-                Globals.script.UpdateModView();
+                bool assembled = await __result;
+
+                if (assembled)
+                {
+                    Globals.script.UpdateModView();
+                }
             }
         }
     }

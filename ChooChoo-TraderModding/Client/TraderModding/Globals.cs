@@ -6,7 +6,9 @@ namespace ChooChooTraderModding
 {
     public static class Globals
     {
-       public static Dictionary<string, string> traderModsTplCost = new Dictionary<string, string>();
+        public static bool isOnModdingScreen = false;
+
+        public static Dictionary<string, string> traderModsTplCost = new Dictionary<string, string>();
 
         public static string[] itemsInUse = new string[0];
         public static string[] itemsInUseNonBuyable = new string[0];
