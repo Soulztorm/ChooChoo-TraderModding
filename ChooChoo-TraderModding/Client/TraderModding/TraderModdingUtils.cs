@@ -6,26 +6,34 @@ using UnityEngine.UI;
 using UnityEngine;
 using System.Linq;
 using ChooChooTraderModding.Config;
+using EFT.UI;
 
 namespace ChooChooTraderModding
 {
 	public class TraderModdingUtils
 	{
-		public static ModAndCost[] GetTraderMods()
+        public const string ruble_colorstring = "<color=#c4bc89> ₽</color>";
+        public const string dollar_colorstring = "<color=#03d100> $</color>";
+        public const string euro_colorstring = "<color=#0073de> €</color>";
+
+        public static TraderData GetTraderMods()
 		{
 			string json = RequestHandler.GetJson("/choochoo-trader-modding/json");
-			return JsonConvert.DeserializeObject<ModAndCost[]>(json);
+			return JsonConvert.DeserializeObject<TraderData>(json);
 		}
 
-		public static ModAndCost[] GetData()
+		public static TraderData GetData()
 		{
-            ModAndCost[] mods = null;
+            TraderData traderData = null;
 			Task task = Task.Run(delegate
 			{
-				mods = TraderModdingUtils.GetTraderMods();
+                traderData = TraderModdingUtils.GetTraderMods();
 			});
 			task.Wait();
-			return mods;
+
+            //ConsoleScreen.Log("Price dollar: " + traderData.dollar_to_ruble.ToString());
+            //ConsoleScreen.Log("Price euro: " + traderData.euro_to_ruble.ToString());
+			return traderData;
 		}
 
         public static void AddItemPriceTag(Transform parent, Item item, bool addToGlobalList = true)
@@ -43,6 +51,8 @@ namespace ChooChooTraderModding
                     string costText;
                     if (Globals.traderModsTplCost.TryGetValue(item.TemplateId, out costText))
                     {
+                        TransformPriceTextToColored(ref costText);
+
                         // Add a black background
                         GameObject colorPanel = parent.Find("Color Panel").gameObject;
                         GameObject itemPriceTagBackground = GameObject.Instantiate(colorPanel);
@@ -116,6 +126,18 @@ namespace ChooChooTraderModding
 
             return true;
         }
+
+        public static void TransformPriceTextToColored(ref string priceText)
+        {
+            char currency = priceText.Last<char>();
+
+            if (currency == 'r')
+                priceText = priceText.Substring(0, priceText.Length - 1) + ruble_colorstring;
+            else if (currency == 'd')
+                priceText = priceText.Substring(0, priceText.Length - 1) + dollar_colorstring;
+            else if (currency == 'e')
+                priceText = priceText.Substring(0, priceText.Length - 1) + euro_colorstring;
+        }
     }
 
 	public class ModAndCost
@@ -123,4 +145,11 @@ namespace ChooChooTraderModding
 		public string tpl;
 		public string cost;
 	}
+
+    public class TraderData
+    {
+        public int dollar_to_ruble;
+        public int euro_to_ruble;
+        public ModAndCost[] modsAndCosts;
+    }
 }

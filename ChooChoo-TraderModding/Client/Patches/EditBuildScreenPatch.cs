@@ -100,6 +100,7 @@ namespace ChooChooTraderModding
                 GameObject.Destroy(Globals.buildCostTextGO.GetComponent<ContentSizeFitter>());
 
                 var panelText = Globals.buildCostTextGO.GetComponent<CustomTextMeshProUGUI>();
+                panelText.alignment = TMPro.TextAlignmentOptions.TopRight;
                 panelText.fontSize = 14;
                 panelText.text =  
                     "-  Build Cost  -" +

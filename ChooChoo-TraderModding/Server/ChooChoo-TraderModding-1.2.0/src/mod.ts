@@ -48,7 +48,8 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
 
         // Roubles, Dollars, Euros
         const money = ["5449016a4bdc2d6f028b456f", "5696686a4bdc2da3298b456a", "569668774bdc2da2298b4568"]
-        const money_symbols = ["<color=#c4bc89> ₽</color>", "<color=#03d100> $</color>", "<color=#0073de> €</color>"]
+        //const money_symbols = ["<color=#c4bc89> ₽</color>", "<color=#03d100> $</color>", "<color=#0073de> €</color>"]
+        const money_symbols = ["r", "d", "e"]
 
         // add custom traders defined in the config file
         for (const trader of modConfig.customTraderIds) {
@@ -63,7 +64,12 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
             tpl: string;
             cost: string;
         }
-        const allModAssorts: ModAndCost[] = [];
+        type TraderData = {
+            dollar_to_ruble: number;
+            euro_to_ruble: number;
+            modsAndCosts: ModAndCost[];
+        }
+        const allTraderData: TraderData = {dollar_to_ruble: 0, euro_to_ruble: 0, modsAndCosts: []};
 
         for (const trader of allTraderIds) {
             const traderAssort = traderAssortHelper.getAssort(sessionId, trader, false);
@@ -81,26 +87,37 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
                                 if (item.upd.UnlimitedCount !== undefined) {
                                     // probably unnecessary but to be safe.
                                     if (item.upd.UnlimitedCount == true) {
-                                        allModAssorts.push(mac);
+                                        allTraderData.modsAndCosts.push(mac);
                                         addedByUnlimitedCount = true;
                                     }
                                 }
                                 if (item.upd.StackObjectsCount !== undefined && !addedByUnlimitedCount) {
                                     if (item.upd.StackObjectsCount > 0) {
-                                        allModAssorts.push(mac);
+                                        allTraderData.modsAndCosts.push(mac);
                                     }
                                 }
                             }
                         }
                     }
                 }
+                else if (itemHelper.isOfBaseclass(item._tpl, BaseClasses.MONEY)){
+                    // Dollar
+                    if (item._tpl == "5696686a4bdc2da3298b456a"){
+                        const t = traderAssort.barter_scheme[item._id][0][0];
+                        if (t !== undefined)
+                            allTraderData.dollar_to_ruble = t.count;
+                    }
+                    // Euro
+                    else if (item._tpl == "569668774bdc2da2298b4568"){
+                        const t = traderAssort.barter_scheme[item._id][0][0];
+                        if (t !== undefined)
+                            allTraderData.euro_to_ruble = t.count;
+                    }     
+                }
             }
         }
 
-        const json = JSON.stringify(allModAssorts);
-
-        //console.log(json);
-        
+        const json = JSON.stringify(allTraderData);    
         return json;
     }
 
@@ -119,4 +136,5 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
         return Math.ceil(barter_scheme.count).toString() + money_symbols[moneyIndex];
     }
 }
+
 module.exports = { mod: new ChooChooTraderModding() }

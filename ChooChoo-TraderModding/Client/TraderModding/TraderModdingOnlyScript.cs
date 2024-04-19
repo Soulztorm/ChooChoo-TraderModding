@@ -19,7 +19,7 @@ namespace ChooChooTraderModding
         public Toggle onlyTradersToggle;
         public Item weaponBody = null;
 
-        ModAndCost[] traderMods;
+        TraderData traderData;
 
         public void ToggleTradersOnlyView(bool tradersOnly)
         {
@@ -91,7 +91,7 @@ namespace ChooChooTraderModding
             {
                 if (onlyTradersToggle.isOn)
                 {
-                    bool traderHasMod = traderMods.Any(mod => mod.tpl == item.TemplateId);
+                    bool traderHasMod = traderData.modsAndCosts.Any(mod => mod.tpl == item.TemplateId);
                     if (!(
                         (TraderModdingConfig.InvertTraderSelection.Value ? !traderHasMod : traderHasMod) ||
                         Globals.itemsOnGun.Contains(item.TemplateId) ||
@@ -111,10 +111,10 @@ namespace ChooChooTraderModding
         public void GetTraderItems()
         {
             // Get all mods available from traders
-            traderMods = TraderModdingUtils.GetData();
+            traderData = TraderModdingUtils.GetData();
 
             Globals.traderModsTplCost.Clear();
-            foreach (ModAndCost mod in traderMods)
+            foreach (ModAndCost mod in traderData.modsAndCosts)
             {
                 try
                 {
@@ -151,7 +151,7 @@ namespace ChooChooTraderModding
 
         public void GetItemsInUseNotPurchasable()
         {
-            Globals.itemsInUseNonBuyable = Globals.itemsInUse.Where(item => !traderMods.Any(mod => mod.tpl == item)).ToArray();
+            Globals.itemsInUseNonBuyable = Globals.itemsInUse.Where(item => !traderData.modsAndCosts.Any(mod => mod.tpl == item)).ToArray();
         }
 
         public void GetItemsOnGun()
