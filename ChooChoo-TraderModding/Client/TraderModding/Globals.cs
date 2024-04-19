@@ -18,5 +18,12 @@ namespace ChooChooTraderModding
 
         public static LocalizedText traderOnlyCheckboxText = null;
         public static TraderModdingOnlyScript script = null;
+
+        public static GameObject buildCostTextGO = null;
+
+        //public static Vector2 lastMousePosDown = Vector2.zero;
+        //public static bool isMiddleMouseDown = false;
+
+        //public static Quaternion lastRotatorRot = Quaternion.identity;
     }
 }

@@ -3,7 +3,7 @@ using ChooChooTraderModding.Config;
 
 namespace ChooChooTraderModding
 {
-	[BepInPlugin("choo.choo.tradermodding", "Choo² Trader Modding", "1.4.0")]
+	[BepInPlugin("choo.choo.tradermodding", "Choo² Trader Modding", "1.5.0")]
 	public class TraderModdingPlugin : BaseUnityPlugin
 	{
 		private void Awake()
@@ -17,6 +17,10 @@ namespace ChooChooTraderModding
 			new DropDownPatch().Enable();
 			new DropDownPatchDeleteOverlays().Enable();
 			new ModdingScreenSlotViewPatch().Enable();
-		}
+
+			// Zoom in / out
+			new ItemObserveScreenPatch().Enable();   
+			//new ItemObserveScreenPatchPost().Enable();   
+        }
 	}
 }

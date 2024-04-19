@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Threading.Tasks;
 using Aki.Reflection.Patching;
 using EFT.UI;
@@ -42,6 +42,34 @@ namespace ChooChooTraderModding
             script.onlyAvailableToggle.onValueChanged.RemoveAllListeners();
             script.onlyAvailableToggle.onValueChanged.AddListener(new UnityAction<bool>(script.ToggleOnlyAvailableView));
 
+
+
+            // New panel
+            var screenGO = __instance.gameObject;
+
+            GameObject newPanel = new GameObject("NewPanel");
+            newPanel.transform.SetParent(screenGO.transform, false);
+
+            var img = newPanel.AddComponent<Image>();
+            img.material.mainTexture = Texture2D.whiteTexture;
+            img.color = new Color(0.0667f, 0.0706f, 0.0706f, 1) ;
+
+            var rectTransform = newPanel.GetComponent<RectTransform>();
+            var dragComponent = newPanel.AddComponent<UIDragComponent>();
+            dragComponent.Init(rectTransform, true);
+
+            var contentFitter = newPanel.AddComponent<ContentSizeFitter>();
+            contentFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var layoutGroup = newPanel.AddComponent<VerticalLayoutGroup>();
+            layoutGroup.childAlignment = TextAnchor.MiddleLeft;
+            layoutGroup.padding = new RectOffset(5, 5, 5, 5);
+
+            // Scale from the top left
+            rectTransform.pivot = new Vector2(0, 1);
+            newPanel.transform.position = new Vector3(215, 1014, 0);
+
             // Reference to script
             Globals.script = script;
         }
@@ -59,6 +87,29 @@ namespace ChooChooTraderModding
         public static void Postfix(EditBuildScreen __instance, EditBuildScreen.GClass3126 controller)
         {
             Globals.isOnModdingScreen = true;
+
+
+
+            if (Globals.buildCostTextGO ==  null)
+            {
+                var newPanelGO = __instance.transform.Find("NewPanel");
+                var captionGO = __instance.transform.Find("Sub-caption").gameObject;
+
+                Globals.buildCostTextGO = GameObject.Instantiate(captionGO);
+                Globals.buildCostTextGO.transform.SetParent(newPanelGO, false);
+                GameObject.Destroy(Globals.buildCostTextGO.GetComponent<ContentSizeFitter>());
+
+                var panelText = Globals.buildCostTextGO.GetComponent<CustomTextMeshProUGUI>();
+                panelText.fontSize = 14;
+                panelText.text =  
+                    "-  Build Cost  -" +
+                    "\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾" +
+                    "\n123<color=#c4bc89> ₽</color>" +
+                    "\n+ 99876456<color=#03d100> $</color>" +
+                    "\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾" +
+                    "\n998764562<color=#c4bc89> ₽</color>";
+            }
+
 
             GameObject togglegroup = __instance.transform.Find("Toggle Group").gameObject;
             GameObject onlyavailable = togglegroup.transform.Find("OnlyAvailable").gameObject;
@@ -80,14 +131,18 @@ namespace ChooChooTraderModding
             bool onlyAvailableTicked = onlyavailable.GetComponent<Toggle>().isOn;
             if (onlyAvailableTicked) 
             { 
-                __instance.method_41(onlyAvailableTicked);
+                script.GetItemsOnGun();
+                __instance.method_41(true);
             }
             else if (onlytraders.GetComponent<Toggle>().isOn)
             {
                 script.UpdateModView();
             }
             else
+            {
+                script.GetItemsOnGun();
                 __instance.method_41(false);
+            }
         }
     }
 
