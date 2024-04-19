@@ -104,6 +104,7 @@
     <Compile Include="Client\Patches\DropDownPatch.cs" />
     <Compile Include="Client\Patches\EditBuildScreenPatch.cs" />
     <Compile Include="Client\Patches\ItemObserveScreenPatch.cs" />
+    <Compile Include="Client\Patches\WeaponUpdatePatch.cs" />
     <Compile Include="Client\Plugin\Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Client\TraderModding\Globals.cs" />

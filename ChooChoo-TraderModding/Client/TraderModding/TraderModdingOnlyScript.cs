@@ -112,6 +112,8 @@ namespace ChooChooTraderModding
         {
             // Get all mods available from traders
             traderData = TraderModdingUtils.GetData();
+            Globals.dollars_to_rubles = traderData.dollar_to_ruble;
+            Globals.euros_to_rubles = traderData.euro_to_ruble;
 
             Globals.traderModsTplCost.Clear();
             foreach (ModAndCost mod in traderData.modsAndCosts)
@@ -120,8 +122,40 @@ namespace ChooChooTraderModding
                 {
                     Globals.traderModsTplCost.Add(mod.tpl, mod.cost);
                 }
-                catch (Exception e)
+                // Price already in list, check if lower after conversion
+                catch (ArgumentException e)
                 {
+                    // Convert the existring cost to rubles
+                    string existingCostString = Globals.traderModsTplCost[mod.tpl];
+                    int existingCostAmount = 0;
+                    try { existingCostAmount = Int32.Parse(existingCostString.Substring(0, existingCostString.Length - 1)); } catch { continue; }
+
+                    int existingCostRubles = 0;
+                    char currencyExistingCost = existingCostString.Last<char>();
+                    if (currencyExistingCost == 'r')
+                        existingCostRubles = existingCostAmount;
+                    else if (currencyExistingCost == 'd')
+                        existingCostRubles = existingCostAmount * traderData.dollar_to_ruble;
+                    else if (currencyExistingCost == 'e')
+                        existingCostRubles = existingCostAmount * traderData.euro_to_ruble;
+
+
+                    // Get the cost for the mod we just tried to add again, then see if lower, if so -> update cost
+                    int newCostAmount = 0;
+                    try { newCostAmount = Int32.Parse(mod.cost.Substring(0, mod.cost.Length - 1)); } catch { continue; }
+
+                    int newCostRubles = 0;
+                    char currencyNewCost = mod.cost.Last<char>();
+                    if (currencyNewCost == 'r')
+                        newCostRubles = newCostAmount;
+                    else if (currencyNewCost == 'd')
+                        newCostRubles = newCostAmount * traderData.dollar_to_ruble;
+                    else if (currencyNewCost == 'e')
+                        newCostRubles = newCostAmount * traderData.euro_to_ruble;
+
+
+                    if (newCostRubles < existingCostRubles)
+                        Globals.traderModsTplCost[mod.tpl] = mod.cost;
                 }
             }
         }

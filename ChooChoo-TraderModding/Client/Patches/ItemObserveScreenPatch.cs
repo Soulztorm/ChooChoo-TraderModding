@@ -61,6 +61,21 @@ namespace ChooChooTraderModding
     }
 
 
+    public class ItemObserveScreenRefreshIconsPatch : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen>), nameof(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen>.method_6));
+        }
+
+        [PatchPostfix]
+        static void Postfix()
+        {
+            TraderModdingUtils.UpdateBuildCost();
+        }
+    }
+
+
 
     //public class ItemObserveScreenPatchPost : ModulePatch
     //{

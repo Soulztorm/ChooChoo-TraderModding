@@ -7,6 +7,8 @@ using HarmonyLib;
 using ChooChooTraderModding.Config;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
+using EFT.UI;
 
 namespace ChooChooTraderModding
 {
@@ -37,7 +39,8 @@ namespace ChooChooTraderModding
 
             // Color backgrounds if any
             Color backGroundColor = new Color();
-            if (!TraderModdingUtils.GetColorForItem(item, ref backGroundColor))
+            bool itemNeedsToBeBought = false;
+            if (!TraderModdingUtils.GetColorForItem(item, ref backGroundColor, ref itemNeedsToBeBought))
                 return;
 
             // Add the highlight background
@@ -117,6 +120,7 @@ namespace ChooChooTraderModding
             Transform modView = item_view_container.GetChild(0);
             if (modView == null) return;
 
+            bool itemNeedsToBeBought = false;
 
             if (!TraderModdingConfig.ColorBorders.Value)
                 DropDownPatch.RestoreBorder(modView);
@@ -134,7 +138,7 @@ namespace ChooChooTraderModding
                 bool defaultBorder = false;
 
                 Color backGroundColor = new Color();
-                if (!TraderModdingUtils.GetColorForItem(item, ref backGroundColor))
+                if (!TraderModdingUtils.GetColorForItem(item, ref backGroundColor, ref itemNeedsToBeBought))
                 {
                     defaultBorder = true;
                     backGroundColor = new Color(0.2941f, 0.3098f, 0.3216f, 1f);
@@ -162,6 +166,12 @@ namespace ChooChooTraderModding
             // Show the price tag if the part is not already on the gun
             if (TraderModdingConfig.ShowPriceTagsOnWeaponItems.Value || (TraderModdingConfig.ShowPriceTags.Value && !Globals.itemsOnGun.Contains(item.TemplateId)))
                 TraderModdingUtils.AddItemPriceTag(modView, item, false);
+
+            // Add to the list of items to buy if necessary
+            if (itemNeedsToBeBought)
+            {
+                Globals.itemsToBuy.Add(item.TemplateId);
+            }              
         }
     }
 }

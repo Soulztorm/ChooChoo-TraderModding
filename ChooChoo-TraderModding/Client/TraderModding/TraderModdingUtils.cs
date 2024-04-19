@@ -7,6 +7,7 @@ using UnityEngine;
 using System.Linq;
 using ChooChooTraderModding.Config;
 using EFT.UI;
+using System;
 
 namespace ChooChooTraderModding
 {
@@ -15,6 +16,8 @@ namespace ChooChooTraderModding
         public const string ruble_colorstring = "<color=#c4bc89> ₽</color>";
         public const string dollar_colorstring = "<color=#03d100> $</color>";
         public const string euro_colorstring = "<color=#0073de> €</color>";
+
+        public const string build_cost_header = "-  Build Cost  -\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾";
 
         public static TraderData GetTraderMods()
 		{
@@ -111,18 +114,24 @@ namespace ChooChooTraderModding
                 GameObject.Destroy(existingPriceTagBG.gameObject);
         }
 
-        public static bool GetColorForItem(Item item, ref Color color)
+        public static bool GetColorForItem(Item item, ref Color color, ref bool needsBuying)
         {
             if (TraderModdingConfig.HighlightOnWeaponItems.Value && Globals.itemsOnGun.Contains(item.TemplateId))
                 color = TraderModdingConfig.ColorOnWeapon.Value;
             else if (TraderModdingConfig.HighlightAttachedItems.Value && Globals.itemsInUseNonBuyable.Contains(item.TemplateId))
                 color = TraderModdingConfig.ColorAttachedNonBuyable.Value;
             else if (TraderModdingConfig.HighlightAttachedItems.Value && Globals.itemsInUse.Contains(item.TemplateId))
+            {
                 color = TraderModdingConfig.ColorAttached.Value;
+                needsBuying = true;
+            }
             else if (TraderModdingConfig.HighlightUsableItems.Value && Globals.itemsAvailable.Contains(item.TemplateId))
                 color = TraderModdingConfig.ColorUsable.Value;
             else
+            {
+                needsBuying = true;
                 return false;
+            }
 
             return true;
         }
@@ -137,6 +146,73 @@ namespace ChooChooTraderModding
                 priceText = priceText.Substring(0, priceText.Length - 1) + dollar_colorstring;
             else if (currency == 'e')
                 priceText = priceText.Substring(0, priceText.Length - 1) + euro_colorstring;
+        }
+
+        public static void UpdateBuildCost()
+        {
+            if (!Globals.isOnModdingScreen || Globals.buildCostTextGO == null)
+                return;
+
+            // Sum up all prices
+            int amount_rubles = 0;
+            int amount_dollars = 0;
+            int amount_euros  = 0;
+
+            foreach (var itemToBuy in Globals.itemsToBuy)
+            {
+                string itemCost = "";
+                if (!Globals.traderModsTplCost.TryGetValue(itemToBuy, out itemCost))
+                    continue;
+
+                int amount = 0;
+                try
+                {
+                    amount = Int32.Parse(itemCost.Substring(0, itemCost.Length - 1));
+                }
+                catch { continue; }
+
+                char currency = itemCost.Last<char>();
+                if (currency == 'r')
+                    amount_rubles += amount;
+                else if (currency == 'd')
+                    amount_dollars += amount;
+                else if (currency == 'e')
+                    amount_euros += amount;
+            }
+
+
+            string final_text = build_cost_header;
+
+            if (amount_rubles > 0)
+            {
+                string rubles_text = amount_rubles.ToString() + "r";
+                TransformPriceTextToColored(ref rubles_text);
+                final_text += "\n" + rubles_text;
+            }
+            if (amount_dollars > 0)
+            {
+                string dollars_text = amount_dollars.ToString() + "d";
+                TransformPriceTextToColored(ref dollars_text);
+                final_text += "\n" + dollars_text;
+            }
+            if (amount_euros > 0)
+            {
+                string euros_text = amount_euros.ToString() + "e";
+                TransformPriceTextToColored(ref euros_text);
+                final_text += "\n" + euros_text;
+            }
+
+            int amount_total_rubles = amount_rubles + amount_dollars * Globals.dollars_to_rubles + amount_euros * Globals.euros_to_rubles;
+            if (amount_total_rubles > 0)
+            {
+                string total_rubles_text = amount_total_rubles.ToString() + "r";
+                TransformPriceTextToColored(ref total_rubles_text);
+                final_text += "\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n" + total_rubles_text;
+            }
+
+
+            var buildCostText = Globals.buildCostTextGO.GetComponent<CustomTextMeshProUGUI>();
+            buildCostText.text = final_text;
         }
     }
 

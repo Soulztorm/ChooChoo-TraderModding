@@ -9,6 +9,8 @@ namespace ChooChooTraderModding
         public static bool isOnModdingScreen = false;
 
         public static Dictionary<string, string> traderModsTplCost = new Dictionary<string, string>();
+        public static int dollars_to_rubles = 0;
+        public static int euros_to_rubles = 0;
 
         public static string[] itemsInUse = new string[0];
         public static string[] itemsInUseNonBuyable = new string[0];
@@ -20,6 +22,8 @@ namespace ChooChooTraderModding
         public static TraderModdingOnlyScript script = null;
 
         public static GameObject buildCostTextGO = null;
+
+        public static List<string> itemsToBuy = new List<string>();
 
         //public static Vector2 lastMousePosDown = Vector2.zero;
         //public static bool isMiddleMouseDown = false;

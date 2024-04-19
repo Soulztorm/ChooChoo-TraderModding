@@ -17,10 +17,13 @@ namespace ChooChooTraderModding
 			new DropDownPatch().Enable();
 			new DropDownPatchDeleteOverlays().Enable();
 			new ModdingScreenSlotViewPatch().Enable();
+			new WeaponUpdatePatch().Enable();
+
+			// After spawning all icons, refresh build cost
+			new ItemObserveScreenRefreshIconsPatch().Enable();
 
 			// Zoom in / out
 			new ItemObserveScreenPatch().Enable();   
-			//new ItemObserveScreenPatchPost().Enable();   
         }
 	}
 }

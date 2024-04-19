@@ -102,13 +102,7 @@ namespace ChooChooTraderModding
                 var panelText = Globals.buildCostTextGO.GetComponent<CustomTextMeshProUGUI>();
                 panelText.alignment = TMPro.TextAlignmentOptions.TopRight;
                 panelText.fontSize = 14;
-                panelText.text =  
-                    "-  Build Cost  -" +
-                    "\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾" +
-                    "\n123<color=#c4bc89> ₽</color>" +
-                    "\n+ 99876456<color=#03d100> $</color>" +
-                    "\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾" +
-                    "\n998764562<color=#c4bc89> ₽</color>";
+                panelText.text = TraderModdingUtils.build_cost_header;
             }
 
 
@@ -164,6 +158,13 @@ namespace ChooChooTraderModding
             Globals.itemsInUseNonBuyable = new string[0];
             Globals.itemsAvailable = new string[0];
             Globals.traderModsTplCost.Clear();
+            Globals.itemsToBuy.Clear();
+
+            if (Globals.buildCostTextGO != null)
+            {
+                var buildCostText = Globals.buildCostTextGO.GetComponent<CustomTextMeshProUGUI>();
+                buildCostText.text = TraderModdingUtils.build_cost_header;
+            }
         }
     }
 
