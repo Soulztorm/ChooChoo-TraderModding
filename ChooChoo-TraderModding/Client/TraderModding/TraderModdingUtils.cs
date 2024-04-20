@@ -19,18 +19,18 @@ namespace ChooChooTraderModding
 
         public const string build_cost_header = "-  Build Cost  -\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾";
 
-        public static TraderData GetTraderMods()
+        public static TraderData GetTraderMods(bool flea)
 		{
-			string json = RequestHandler.GetJson("/choochoo-trader-modding/json");
-			return JsonConvert.DeserializeObject<TraderData>(json);
+			string json = flea ? RequestHandler.GetJson("/choochoo-trader-modding/json-flea") : RequestHandler.GetJson("/choochoo-trader-modding/json");
+            return JsonConvert.DeserializeObject<TraderData>(json);
 		}
 
-		public static TraderData GetData()
+		public static TraderData GetData(bool flea)
 		{
             TraderData traderData = null;
 			Task task = Task.Run(delegate
 			{
-                traderData = TraderModdingUtils.GetTraderMods();
+                traderData = TraderModdingUtils.GetTraderMods(flea);
 			});
 			task.Wait();
 

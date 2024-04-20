@@ -26,7 +26,14 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
                 {
                     url: "/choochoo-trader-modding/json",
                     action: (url, info, sessionId, output) => {
-                        const json = this.getTraderMods(container, sessionId);
+                        const json = this.getTraderMods(container, sessionId, false);
+                        return json;
+                    }
+                },
+                {
+                    url: "/choochoo-trader-modding/json-flea",
+                    action: (url, info, sessionId, output) => {
+                        const json = this.getTraderMods(container, sessionId, true);
                         return json;
                     }
                 }
@@ -35,7 +42,7 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
         );
     }
 
-    public getTraderMods(container: DependencyContainer, sessionId: string): string {
+    public getTraderMods(container: DependencyContainer, sessionId: string, flea: boolean): string {
         const allTraderIds = [
             "54cb50c76803fa8b248b4571",
             "54cb57776803fa99248b456e",
@@ -72,7 +79,7 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
         const allTraderData: TraderData = {dollar_to_ruble: 0, euro_to_ruble: 0, modsAndCosts: []};
 
         for (const trader of allTraderIds) {
-            const traderAssort = traderAssortHelper.getAssort(sessionId, trader, false);
+            const traderAssort = traderAssortHelper.getAssort(sessionId, trader, flea);
 
             for (const item of traderAssort.items) {
                 addedByUnlimitedCount = false;

@@ -23,6 +23,8 @@ namespace ChooChooTraderModding
 
         public void ToggleTradersOnlyView(bool tradersOnly)
         {
+            Globals.itemsToBuy.Clear();
+
             if (tradersOnly && onlyAvailableToggle.isOn)
             {
                 onlyAvailableToggle.SetIsOnWithoutNotify(false);
@@ -33,6 +35,8 @@ namespace ChooChooTraderModding
         
         public void ToggleOnlyAvailableView(bool onlyAvailable)
         {
+            Globals.itemsToBuy.Clear();
+
             if (onlyAvailable && onlyTradersToggle.isOn)
             {
                 onlyTradersToggle.SetIsOnWithoutNotify(false);
@@ -111,7 +115,7 @@ namespace ChooChooTraderModding
         public void GetTraderItems()
         {
             // Get all mods available from traders
-            traderData = TraderModdingUtils.GetData();
+            traderData = TraderModdingUtils.GetData(false);
             Globals.dollars_to_rubles = traderData.dollar_to_ruble;
             Globals.euros_to_rubles = traderData.euro_to_ruble;
 
