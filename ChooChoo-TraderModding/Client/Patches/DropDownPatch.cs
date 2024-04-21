@@ -29,6 +29,8 @@ namespace ChooChooTraderModding
             Transform lastChild = container.transform.GetChild(container.transform.childCount - 1);
             if (lastChild == null) return;
 
+            // Remove the old tag, in case it comes from the pool where the slot icon was in before
+            TraderModdingUtils.RemoveExistingPriceTag(lastChild);
 
             // Add the price tag
             if (TraderModdingConfig.ShowPriceTags.Value)

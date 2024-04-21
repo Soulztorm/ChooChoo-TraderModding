@@ -183,12 +183,6 @@ namespace ChooChooTraderModding
 
             string final_text = build_cost_header;
 
-            if (amount_rubles > 0)
-            {
-                string rubles_text = amount_rubles.ToString() + "r";
-                TransformPriceTextToColored(ref rubles_text);
-                final_text += "\n" + rubles_text;
-            }
             if (amount_dollars > 0)
             {
                 string dollars_text = amount_dollars.ToString() + "d";
@@ -199,15 +193,23 @@ namespace ChooChooTraderModding
             {
                 string euros_text = amount_euros.ToString() + "e";
                 TransformPriceTextToColored(ref euros_text);
-                final_text += "\n" + euros_text;
+                final_text += (amount_dollars == 0 ? "\n" : "\n+ ") + euros_text;
+            }
+            if (amount_rubles > 0)
+            {
+                string rubles_text = amount_rubles.ToString() + "r";
+                TransformPriceTextToColored(ref rubles_text);
+                final_text += ((amount_dollars == 0 && amount_euros == 0) ? "\n" : "\n+ ") + rubles_text;
             }
 
+
+
             int amount_total_rubles = amount_rubles + amount_dollars * Globals.dollars_to_rubles + amount_euros * Globals.euros_to_rubles;
-            if (amount_total_rubles > 0)
+            if (amount_total_rubles > 0 && (amount_dollars > 0 || amount_euros > 0))
             {
                 string total_rubles_text = amount_total_rubles.ToString() + "r";
                 TransformPriceTextToColored(ref total_rubles_text);
-                final_text += "\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n" + total_rubles_text;
+                final_text += "\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n" + "= " + total_rubles_text;
             }
 
 

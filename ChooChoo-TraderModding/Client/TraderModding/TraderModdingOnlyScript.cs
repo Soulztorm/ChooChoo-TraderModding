@@ -122,45 +122,63 @@ namespace ChooChooTraderModding
             Globals.traderModsTplCost.Clear();
             foreach (ModAndCost mod in traderData.modsAndCosts)
             {
-                try
-                {
-                    Globals.traderModsTplCost.Add(mod.tpl, mod.cost);
-                }
-                // Price already in list, check if lower after conversion
-                catch (ArgumentException e)
-                {
-                    // Convert the existring cost to rubles
-                    string existingCostString = Globals.traderModsTplCost[mod.tpl];
-                    int existingCostAmount = 0;
-                    try { existingCostAmount = Int32.Parse(existingCostString.Substring(0, existingCostString.Length - 1)); } catch { continue; }
 
-                    int existingCostRubles = 0;
-                    char currencyExistingCost = existingCostString.Last<char>();
-                    if (currencyExistingCost == 'r')
-                        existingCostRubles = existingCostAmount;
-                    else if (currencyExistingCost == 'd')
-                        existingCostRubles = existingCostAmount * traderData.dollar_to_ruble;
-                    else if (currencyExistingCost == 'e')
-                        existingCostRubles = existingCostAmount * traderData.euro_to_ruble;
+                Globals.traderModsTplCost[mod.tpl] = mod.cost;
 
 
-                    // Get the cost for the mod we just tried to add again, then see if lower, if so -> update cost
-                    int newCostAmount = 0;
-                    try { newCostAmount = Int32.Parse(mod.cost.Substring(0, mod.cost.Length - 1)); } catch { continue; }
-
-                    int newCostRubles = 0;
-                    char currencyNewCost = mod.cost.Last<char>();
-                    if (currencyNewCost == 'r')
-                        newCostRubles = newCostAmount;
-                    else if (currencyNewCost == 'd')
-                        newCostRubles = newCostAmount * traderData.dollar_to_ruble;
-                    else if (currencyNewCost == 'e')
-                        newCostRubles = newCostAmount * traderData.euro_to_ruble;
+                // I converted to the lowest price before to show these,
+                // but when assembling the gun, and searching for the mods ->
+                // BSG just shows you the last found entry apparently, might be more expensive,
+                // so we will show these as well instead of the cheapest....
 
 
-                    if (newCostRubles < existingCostRubles)
-                        Globals.traderModsTplCost[mod.tpl] = mod.cost;
-                }
+                //try
+                //{
+                //    Globals.traderModsTplCost.Add(mod.tpl, mod.cost);
+                //}
+                //// Price already in list, check if lower after conversion
+                //catch (ArgumentException e)
+                //{
+                //    Globals.traderModsTplCost[mod.tpl] = mod.cost;
+
+                //    //// Convert the existring cost to rubles
+                //    //string existingCostString = Globals.traderModsTplCost[mod.tpl];
+                //    //int existingCostAmount = 0;
+                //    //try { existingCostAmount = Int32.Parse(existingCostString.Substring(0, existingCostString.Length - 1)); } catch { continue; }
+
+                //    //int existingCostRubles = 0;
+                //    //char currencyExistingCost = existingCostString.Last<char>();
+                //    //if (currencyExistingCost == 'r')
+                //    //    existingCostRubles = existingCostAmount;
+                //    //else if (currencyExistingCost == 'd')
+                //    //    existingCostRubles = existingCostAmount * traderData.dollar_to_ruble;
+                //    //else if (currencyExistingCost == 'e')
+                //    //    existingCostRubles = existingCostAmount * traderData.euro_to_ruble;
+
+
+                //    //// Get the cost for the mod we just tried to add again, then see if lower, if so -> update cost
+                //    //int newCostAmount = 0;
+                //    //try { newCostAmount = Int32.Parse(mod.cost.Substring(0, mod.cost.Length - 1)); } catch { continue; }
+
+                //    //int newCostRubles = 0;
+                //    //char currencyNewCost = mod.cost.Last<char>();
+                //    //if (currencyNewCost == 'r')
+                //    //    newCostRubles = newCostAmount;
+                //    //else if (currencyNewCost == 'd')
+                //    //    newCostRubles = newCostAmount * traderData.dollar_to_ruble;
+                //    //else if (currencyNewCost == 'e')
+                //    //    newCostRubles = newCostAmount * traderData.euro_to_ruble;
+
+                //    //if (mod.tpl == "57cffb66245977632f391a99")
+                //    //{
+                //    //    ConsoleScreen.LogError("Magpul M-LOK old:" + existingCostString);
+                //    //    ConsoleScreen.LogError("Magpul M-LOK new:" + mod.cost);
+                //    //}
+
+
+                //    //if (newCostRubles < existingCostRubles)
+                //    //    Globals.traderModsTplCost[mod.tpl] = mod.cost;
+                //}
             }
         }
 
