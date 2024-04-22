@@ -21,6 +21,7 @@ namespace ChooChooTraderModding
         public static LocalizedText traderOnlyCheckboxText = null;
         public static TraderModdingOnlyScript script = null;
 
+        public static GameObject buildCostPanelGO = null;
         public static GameObject buildCostTextGO = null;
 
         public static List<string> itemsToBuy = new List<string>();

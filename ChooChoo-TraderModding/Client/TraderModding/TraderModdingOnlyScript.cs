@@ -216,5 +216,19 @@ namespace ChooChooTraderModding
             List<string> allmods_gun = weaponBody.GetAllItems().OfType<Mod>().Select(mod => mod.TemplateId).ToList();
             Globals.itemsOnGun = allmods_gun.ToArray();
         }
+
+        public void UpdateBuildCostPanel()
+        {
+            if (Globals.buildCostPanelGO != null)
+            {
+                Globals.buildCostPanelGO.SetActive(TraderModdingConfig.ShowBuildCost.Value);
+            }
+
+            if (Globals.buildCostTextGO != null)
+            {
+                var panelText = Globals.buildCostTextGO.GetComponent<CustomTextMeshProUGUI>();
+                panelText.fontSize = TraderModdingConfig.BuildCostFontSize.Value;
+            }
+        }
     }
 }

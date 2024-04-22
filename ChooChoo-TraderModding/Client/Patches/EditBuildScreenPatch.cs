@@ -47,29 +47,29 @@ namespace ChooChooTraderModding
             // New panel
             var screenGO = __instance.gameObject;
 
-            GameObject buildCostPanel = new GameObject("BuildCostPanel");
-            buildCostPanel.transform.SetParent(screenGO.transform, false);
+            Globals.buildCostPanelGO = new GameObject("BuildCostPanel");
+            Globals.buildCostPanelGO.transform.SetParent(screenGO.transform, false);
 
-            var img = buildCostPanel.AddComponent<Image>();
+            var img = Globals.buildCostPanelGO.AddComponent<Image>();
             img.material.mainTexture = Texture2D.whiteTexture;
             //img.color = new Color(0.0667f, 0.0706f, 0.0706f, 1) ;
             img.color = new Color(0.1486f, 0.1565f, 0.1604f, 1) ;
 
-            var rectTransform = buildCostPanel.GetComponent<RectTransform>();
-            var dragComponent = buildCostPanel.AddComponent<UIDragComponent>();
+            var rectTransform = Globals.buildCostPanelGO.GetComponent<RectTransform>();
+            var dragComponent = Globals.buildCostPanelGO.AddComponent<UIDragComponent>();
             dragComponent.Init(rectTransform, true);
 
-            var contentFitter = buildCostPanel.AddComponent<ContentSizeFitter>();
+            var contentFitter = Globals.buildCostPanelGO.AddComponent<ContentSizeFitter>();
             contentFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
             contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            var layoutGroup = buildCostPanel.AddComponent<VerticalLayoutGroup>();
+            var layoutGroup = Globals.buildCostPanelGO.AddComponent<VerticalLayoutGroup>();
             layoutGroup.childAlignment = TextAnchor.MiddleLeft;
             layoutGroup.padding = new RectOffset(7, 7, 5, 5);
 
             // Scale from the top left
             rectTransform.pivot = new Vector2(0, 1);
-            buildCostPanel.transform.position = new Vector3(215, 1014, 0);
+            Globals.buildCostPanelGO.transform.position = new Vector3(215, 1014, 0);
 
             // Reference to script
             Globals.script = script;
@@ -89,21 +89,18 @@ namespace ChooChooTraderModding
         {
             Globals.isOnModdingScreen = true;
 
-
-
-            if (Globals.buildCostTextGO ==  null)
+            if (Globals.buildCostTextGO ==  null && Globals.buildCostPanelGO != null)
             {
-                var newPanelGO = __instance.transform.Find("NewPanel");
                 var captionGO = __instance.transform.Find("Sub-caption").gameObject;
 
                 Globals.buildCostTextGO = GameObject.Instantiate(captionGO);
                 Globals.buildCostTextGO.name = "BuildCostText";
-                Globals.buildCostTextGO.transform.SetParent(newPanelGO, false);
+                Globals.buildCostTextGO.transform.SetParent(Globals.buildCostPanelGO.transform, false);
                 GameObject.Destroy(Globals.buildCostTextGO.GetComponent<ContentSizeFitter>());
 
                 var panelText = Globals.buildCostTextGO.GetComponent<CustomTextMeshProUGUI>();
                 panelText.alignment = TMPro.TextAlignmentOptions.TopRight;
-                panelText.fontSize = 16;
+                panelText.fontSize = TraderModdingConfig.BuildCostFontSize.Value;
                 panelText.text = TraderModdingUtils.build_cost_header;
             }
 
@@ -140,6 +137,8 @@ namespace ChooChooTraderModding
                 script.GetItemsOnGun();
                 __instance.method_41(false);
             }
+
+            script.UpdateBuildCostPanel();
         }
     }
 

@@ -15,12 +15,16 @@ namespace ChooChooTraderModding.Config
         public static ConfigEntry<bool> ShowPriceTags;
         public static ConfigEntry<bool> ShowPriceTagsOnWeaponItems;
 
-        private const string HighlightSectionTitle = "3. Highlight Items";
+        private const string BuildCostTitle = "3. Build Cost";
+        public static ConfigEntry<bool> ShowBuildCost;
+        public static ConfigEntry<int> BuildCostFontSize;
+
+        private const string HighlightSectionTitle = "4. Highlight Items";
         public static ConfigEntry<bool> HighlightAttachedItems;
         public static ConfigEntry<bool> HighlightUsableItems;
         public static ConfigEntry<bool> HighlightOnWeaponItems;
 
-        private const string ColorsSectionTitle = "4. Color Settings";
+        private const string ColorsSectionTitle = "5. Color Settings";
         public static ConfigEntry<Color> ColorOnWeapon;
         public static ConfigEntry<Color> ColorUsable;
         public static ConfigEntry<Color> ColorAttached;
@@ -83,6 +87,32 @@ namespace ChooChooTraderModding.Config
                 new ConfigurationManagerAttributes { IsAdvanced = false, Order = 0 })
             );
             ShowPriceTagsOnWeaponItems.SettingChanged += UpdateModView;
+
+
+
+
+            // BUILD COST
+            ShowBuildCost = config.Bind(
+                BuildCostTitle,
+                "Show build cost panel",
+                true,
+                new ConfigDescription("Show build cost panel",
+                null,
+                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 1 })
+            );
+            ShowBuildCost.SettingChanged += UpdateBuildCostPanel;
+
+            BuildCostFontSize = config.Bind(
+                BuildCostTitle,
+                "Build cost font size",
+                16,
+                new ConfigDescription("Font size for the build cost panel",
+                new AcceptableValueRange<int>(8, 32),
+                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 0 })
+            );
+            BuildCostFontSize.SettingChanged += UpdateBuildCostPanel;
+
+
 
 
 
@@ -178,6 +208,13 @@ namespace ChooChooTraderModding.Config
             if (Globals.script == null) { return; }
 
             Globals.script.UpdateModView();
+        }
+
+        private static void UpdateBuildCostPanel(object sender, EventArgs e)
+        {
+            if (Globals.script == null) { return; }
+
+            Globals.script.UpdateBuildCostPanel();
         }
     }
 }
