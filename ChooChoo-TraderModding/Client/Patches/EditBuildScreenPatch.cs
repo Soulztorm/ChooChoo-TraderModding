@@ -89,19 +89,23 @@ namespace ChooChooTraderModding
         {
             Globals.isOnModdingScreen = true;
 
-            if (Globals.buildCostTextGO ==  null && Globals.buildCostPanelGO != null)
+            if (Globals.buildCostTextGO == null && Globals.buildCostPanelGO != null)
             {
-                var captionGO = __instance.transform.Find("Sub-caption").gameObject;
+                var caption = __instance.transform.Find("Sub-caption");
+                if (caption != null)
+                {
+                    var captionGO = caption.gameObject;
 
-                Globals.buildCostTextGO = GameObject.Instantiate(captionGO);
-                Globals.buildCostTextGO.name = "BuildCostText";
-                Globals.buildCostTextGO.transform.SetParent(Globals.buildCostPanelGO.transform, false);
-                GameObject.Destroy(Globals.buildCostTextGO.GetComponent<ContentSizeFitter>());
+                    Globals.buildCostTextGO = GameObject.Instantiate(captionGO);
+                    Globals.buildCostTextGO.name = "BuildCostText";
+                    Globals.buildCostTextGO.transform.SetParent(Globals.buildCostPanelGO.transform, false);
+                    GameObject.Destroy(Globals.buildCostTextGO.GetComponent<ContentSizeFitter>());
 
-                var panelText = Globals.buildCostTextGO.GetComponent<CustomTextMeshProUGUI>();
-                panelText.alignment = TMPro.TextAlignmentOptions.TopRight;
-                panelText.fontSize = TraderModdingConfig.BuildCostFontSize.Value;
-                panelText.text = TraderModdingUtils.build_cost_header;
+                    var panelText = Globals.buildCostTextGO.GetComponent<CustomTextMeshProUGUI>();
+                    panelText.alignment = TMPro.TextAlignmentOptions.TopRight;
+                    panelText.fontSize = TraderModdingConfig.BuildCostFontSize.Value;
+                    panelText.text = TraderModdingUtils.build_cost_header;
+                }
             }
 
 
@@ -180,7 +184,7 @@ namespace ChooChooTraderModding
         [PatchPostfix]
         public static async void Postfix(Task<bool> __result)
         {
-            if (Globals.isOnModdingScreen)
+            if (Globals.isOnModdingScreen && Globals.script != null)
             {
                 bool assembled = await __result;
 

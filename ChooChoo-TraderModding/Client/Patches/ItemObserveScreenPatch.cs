@@ -20,16 +20,30 @@ namespace ChooChooTraderModding
             return AccessTools.Method(typeof(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen>), nameof(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen>.Update));
         }
 
-        [PatchPrefix]
-        public static void Prefix(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen> __instance)
+        [PatchPostfix]
+        public static void Postfix(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen> __instance)
         {
+            if (__instance == null)
+                return;
+
             if (Globals.isOnModdingScreen)
             {
-                WeaponPreview wp = AccessTools.Field(__instance.GetType(), "_weaponPreview").GetValue(__instance) as WeaponPreview;
+                FieldInfo weaponPreviewField = AccessTools.Field(__instance.GetType(), "_weaponPreview");
+
+                if (weaponPreviewField == null)
+                    return;
+
+                WeaponPreview wp = weaponPreviewField.GetValue(__instance) as WeaponPreview;
 
                 if (wp != null)
                 {
+                    if (wp.WeaponPreviewCamera == null)
+                        return;
+
                     Transform transform = wp.WeaponPreviewCamera.transform;
+
+                    if (transform == null)
+                        return;
 
                     if (Input.mouseScrollDelta.y != 0)
                     {

@@ -9,6 +9,7 @@ using EFT.InventoryLogic;
 using UnityEngine;
 using UnityEngine.UI;
 using ChooChooTraderModding.Config;
+using System.Reflection;
 
 namespace ChooChooTraderModding
 {
@@ -25,7 +26,7 @@ namespace ChooChooTraderModding
         {
             Globals.itemsToBuy.Clear();
 
-            if (tradersOnly && onlyAvailableToggle.isOn)
+            if (tradersOnly && onlyAvailableToggle != null && onlyAvailableToggle.isOn)
             {
                 onlyAvailableToggle.SetIsOnWithoutNotify(false);
             }
@@ -37,7 +38,7 @@ namespace ChooChooTraderModding
         {
             Globals.itemsToBuy.Clear();
 
-            if (onlyAvailable && onlyTradersToggle.isOn)
+            if (onlyAvailable && onlyTradersToggle != null && onlyTradersToggle.isOn)
             {
                 onlyTradersToggle.SetIsOnWithoutNotify(false);
             }
@@ -69,17 +70,33 @@ namespace ChooChooTraderModding
 
         public void UpdateModView()
         {
-            // If we only want to see available mods the BSG way (kekw), do nothing
-            if (__instance.enabled && onlyAvailableToggle.isOn) 
+            if (__instance == null)
                 return;
+
+            // If we only want to see available mods the BSG way (kekw), do nothing
+            if (__instance.enabled && onlyAvailableToggle != null && onlyAvailableToggle.isOn) 
+                return;
+
+            // Can't get the checkbox for some reason
+            if (onlyTradersToggle == null)
+                return;
+
+            // Get the player profile and build inv controller class
+            FieldInfo fi_profile = AccessTools.Field(typeof(EditBuildScreen), "profile_0");
+            if (fi_profile ==  null)
+                return;
+
+            Profile profile = (Profile)fi_profile.GetValue(__instance);
+            if (profile == null)
+                return;
+            InventoryControllerClass inventoryControllerClass = new InventoryControllerClass(profile, false, null);
 
             // Get all mods that exist
             ItemFactory itemFactory = Singleton<ItemFactory>.Instance;
-            Item[] allmods = itemFactory.CreateAllModsEver();
+            if (itemFactory == null)
+                return;
 
-            // Get the player profile and build inv controller class
-            Profile profile = (Profile)AccessTools.Field(typeof(EditBuildScreen), "profile_0").GetValue(__instance);
-            InventoryControllerClass inventoryControllerClass = new InventoryControllerClass(profile, false, null);
+            Item[] allmods = itemFactory.CreateAllModsEver();
 
             // Get all usable mods on the player and not on any weapon
             Item[] playeritems_usable_mods = { };
