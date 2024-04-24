@@ -7,52 +7,64 @@ using ChooChooTraderModding.Config;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using EFT;
+using TMPro;
 
 namespace ChooChooTraderModding
 {
     public class EditBuildScreenPatch : ModulePatch
     {
+        public static FieldInfo fi_profile;
+
         protected override MethodBase GetTargetMethod()
         {
+            fi_profile = AccessTools.Field(typeof(EditBuildScreen), "profile_0");
+
             return AccessTools.Method(typeof(EditBuildScreen), nameof(EditBuildScreen.Awake));
         }
 
         [PatchPostfix]
         public static void Postfix(EditBuildScreen __instance)
         {
-            GameObject togglegroup = __instance.transform.Find("Toggle Group").gameObject;
-            GameObject onlyavail = togglegroup.transform.Find("OnlyAvailable").gameObject;
+            FieldInfo fi_toggleOnlyAvail = AccessTools.Field(typeof(EditBuildScreen), "_onlyAvailableToggle");
+            if (fi_toggleOnlyAvail == null) { ConsoleScreen.LogError("FieldInfo for onlyAvailableItems == null"); return; }
 
-            GameObject onlyTradersCheckbox = GameObject.Instantiate(onlyavail);
+            Globals.checkbox_availableOnly_toggle = (Toggle)fi_toggleOnlyAvail.GetValue(__instance);
+            if (Globals.checkbox_availableOnly_toggle == null) { ConsoleScreen.LogError("Couldn't get checkbox for onlyAvailableItems"); return; }
+
+            // Clone the existing checkbox and parent it to the toggle group
+            GameObject onlyTradersCheckbox = GameObject.Instantiate(Globals.checkbox_availableOnly_toggle.gameObject);
             onlyTradersCheckbox.name = "OnlyTraders";
-            onlyTradersCheckbox.transform.SetParent(togglegroup.transform, false);
-            LocalizedText labelText = onlyTradersCheckbox.GetComponentInChildren<LocalizedText>();
-            labelText.LocalizationKey =  TraderModdingConfig.InvertTraderSelection.Value ? "Use NO trader items" : "Use only trader items";
-            Globals.traderOnlyCheckboxText = labelText;
+            onlyTradersCheckbox.transform.SetParent(Globals.checkbox_availableOnly_toggle.transform.parent, false);
 
+            // Attach script to the checkbox
             TraderModdingOnlyScript script = onlyTradersCheckbox.AddComponent<TraderModdingOnlyScript>();
             script.__instance = __instance;
-            script.onlyAvailableToggle = onlyavail.GetComponent<Toggle>();
-            script.onlyTradersToggle = onlyTradersCheckbox.GetComponent<Toggle>();
-            script.onlyTradersToggle.isOn = TraderModdingConfig.DefaultToTraderOnly.Value;
+            // Reference to script
+            Globals.script = script;
 
-            script.onlyTradersToggle.onValueChanged.AddListener(new UnityAction<bool>(script.ToggleTradersOnlyView));
+            // Get a reference to the text, and change it
+            LocalizedText labelText = onlyTradersCheckbox.GetComponentInChildren<LocalizedText>();
+            labelText.LocalizationKey =  TraderModdingConfig.InvertTraderSelection.Value ? "Use NO trader items" : "Use only trader items";
+            Globals.checkbox_traderOnly_text = labelText;
+
+            // Listeners for only trader checkbox
+            Globals.checkbox_traderOnly_toggle = onlyTradersCheckbox.GetComponent<Toggle>();
+            Globals.checkbox_traderOnly_toggle.isOn = TraderModdingConfig.DefaultToTraderOnly.Value;
+            Globals.checkbox_traderOnly_toggle.onValueChanged.AddListener(new UnityAction<bool>(Globals.script.ToggleTradersOnlyView));
 
             // Replace original only available listener with ours
-            script.onlyAvailableToggle.onValueChanged.RemoveAllListeners();
-            script.onlyAvailableToggle.onValueChanged.AddListener(new UnityAction<bool>(script.ToggleOnlyAvailableView));
+            Globals.checkbox_availableOnly_toggle.onValueChanged.RemoveAllListeners();
+            Globals.checkbox_availableOnly_toggle.onValueChanged.AddListener(new UnityAction<bool>(Globals.script.ToggleOnlyAvailableView));
 
 
 
-            // New panel
-            var screenGO = __instance.gameObject;
-
+            // Create Build Cost Panel and parent it to the screen
             Globals.buildCostPanelGO = new GameObject("BuildCostPanel");
-            Globals.buildCostPanelGO.transform.SetParent(screenGO.transform, false);
+            Globals.buildCostPanelGO.transform.SetParent(__instance.gameObject.transform, false);
 
             var img = Globals.buildCostPanelGO.AddComponent<Image>();
             img.material.mainTexture = Texture2D.whiteTexture;
-            //img.color = new Color(0.0667f, 0.0706f, 0.0706f, 1) ;
             img.color = new Color(0.1486f, 0.1565f, 0.1604f, 1) ;
 
             var rectTransform = Globals.buildCostPanelGO.GetComponent<RectTransform>();
@@ -70,16 +82,16 @@ namespace ChooChooTraderModding
             // Scale from the top left
             rectTransform.pivot = new Vector2(0, 1);
             Globals.buildCostPanelGO.transform.position = new Vector3(215, 1014, 0);
-
-            // Reference to script
-            Globals.script = script;
         }
     }
 
     public class EditBuildScreenShowPatch : ModulePatch
-    {
+    {             
+        private static FieldInfo fi_weaponName;
         protected override MethodBase GetTargetMethod()
         {
+            fi_weaponName = AccessTools.Field(typeof(EditBuildScreen), "_weaponName");
+
             return AccessTools.FirstMethod(typeof(EditBuildScreen),
                 x => x.Name == nameof(EditBuildScreen.Show));
         }
@@ -91,10 +103,11 @@ namespace ChooChooTraderModding
 
             if (Globals.buildCostTextGO == null && Globals.buildCostPanelGO != null)
             {
-                var caption = __instance.transform.Find("Sub-caption");
-                if (caption != null)
+                TextMeshProUGUI weaponName = (TextMeshProUGUI)fi_weaponName.GetValue(__instance);
+
+                if (weaponName != null)
                 {
-                    var captionGO = caption.gameObject;
+                    var captionGO = weaponName.gameObject;
 
                     Globals.buildCostTextGO = GameObject.Instantiate(captionGO);
                     Globals.buildCostTextGO.name = "BuildCostText";
@@ -106,43 +119,40 @@ namespace ChooChooTraderModding
                     panelText.fontSize = TraderModdingConfig.BuildCostFontSize.Value;
                     panelText.text = TraderModdingUtils.build_cost_header;
                 }
+                else
+                {
+                    ConsoleScreen.LogError("Could not find weapon name gameobject to clone.");
+                }
             }
 
+            Globals.script.weaponBody = controller.Item;
 
-            GameObject togglegroup = __instance.transform.Find("Toggle Group").gameObject;
-            GameObject onlyavailable = togglegroup.transform.Find("OnlyAvailable").gameObject;
-            GameObject onlytraders = togglegroup.transform.Find("OnlyTraders").gameObject;
-
-            TraderModdingOnlyScript script = onlytraders.GetComponent<TraderModdingOnlyScript>();
-            script.weaponBody = controller.Item;
+            Globals.script.GetItemsOnGun();
 
             // Get the trader items
-            script.GetTraderItems();
+            Globals.script.GetTraderItems();
 
             // Get items in use
-            script.GetItemsInUse();
+            Globals.script.GetItemsInUse();
 
             // Get items in use that are not purchasable
-            script.GetItemsInUseNotPurchasable();
+            Globals.script.GetItemsInUseNotPurchasable();
 
             // Let's also fix BSG's bug that closing and reopening the modding screen can have the checkbox on without any effect
-            bool onlyAvailableTicked = onlyavailable.GetComponent<Toggle>().isOn;
-            if (onlyAvailableTicked) 
-            { 
-                script.GetItemsOnGun();
+            if (Globals.checkbox_availableOnly_toggle.isOn) 
+            {
                 __instance.method_41(true);
             }
-            else if (onlytraders.GetComponent<Toggle>().isOn)
+            else if (Globals.checkbox_traderOnly_toggle.isOn)
             {
-                script.UpdateModView();
+                Globals.script.UpdateModView();
             }
             else
             {
-                script.GetItemsOnGun();
                 __instance.method_41(false);
             }
 
-            script.UpdateBuildCostPanel();
+            Globals.script.UpdateBuildCostPanel();
         }
     }
 
@@ -190,7 +200,9 @@ namespace ChooChooTraderModding
 
                 if (assembled)
                 {
-                    Globals.script.UpdateModView();
+                    Globals.script.GetItemsOnGun();
+                    Globals.script.__instance.RefreshWeapon();
+                    //Globals.script.UpdateModView();
                 }
             }
         }

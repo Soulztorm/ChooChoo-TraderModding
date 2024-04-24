@@ -8,11 +8,17 @@ using System.Linq;
 using ChooChooTraderModding.Config;
 using EFT.UI;
 using System;
+using EFT.UI.DragAndDrop;
+using HarmonyLib;
+using System.Reflection;
+using TMPro;
+using JetBrains.Annotations;
+using System.Collections.Generic;
 
 namespace ChooChooTraderModding
 {
-	public class TraderModdingUtils
-	{
+    public class TraderModdingUtils
+    {
         public const string ruble_colorstring = "<color=#c4bc89> ₽</color>";
         public const string dollar_colorstring = "<color=#03d100> $</color>";
         public const string euro_colorstring = "<color=#0073de> €</color>";
@@ -20,98 +26,108 @@ namespace ChooChooTraderModding
         public const string build_cost_header = "-  Build Cost  -\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾";
 
         public static TraderData GetTraderMods(bool flea)
-		{
-			string json = flea ? RequestHandler.GetJson("/choochoo-trader-modding/json-flea") : RequestHandler.GetJson("/choochoo-trader-modding/json");
+        {
+            string json = flea ? RequestHandler.GetJson("/choochoo-trader-modding/json-flea") : RequestHandler.GetJson("/choochoo-trader-modding/json");
             return JsonConvert.DeserializeObject<TraderData>(json);
-		}
+        }
 
-		public static TraderData GetData(bool flea)
-		{
+        public static TraderData GetData(bool flea)
+        {
             TraderData traderData = null;
-			Task task = Task.Run(delegate
-			{
+            Task task = Task.Run(delegate
+            {
                 traderData = TraderModdingUtils.GetTraderMods(flea);
-			});
-			task.Wait();
+            });
+            task.Wait();
 
             //ConsoleScreen.Log("Price dollar: " + traderData.dollar_to_ruble.ToString());
             //ConsoleScreen.Log("Price euro: " + traderData.euro_to_ruble.ToString());
-			return traderData;
-		}
+            return traderData;
+        }
 
-        public static void AddItemPriceTag(Transform parent, Item item, bool addToGlobalList = true)
+        public static void AddItemPriceTag(ModdingSelectableItemView modItemView, Item item, bool addToGlobalList = true)
         {
-            // Find the info panel
-            Transform infoPanel = parent.Find("Info Panel");
+            TextMeshProUGUI caption = (TextMeshProUGUI) DropDownPatch.GridItemView_Caption.GetValue(modItemView);
+            ItemViewStats itemViewStats = (ItemViewStats) DropDownPatch.GridItemView_itemViewStats.GetValue(modItemView);
+            if (itemViewStats == null) { ConsoleScreen.LogError("Couldn't add price tag (itemViewStats == null)"); return; }
 
-            // Now if we find a name and have a price for that item, add the pricetag
-            Transform gunName = infoPanel.Find("Name");
-            if (gunName != null)
+            Image modTypeIcon = (Image) DropDownPatch.ItemViewStats_modTypeIcon.GetValue(itemViewStats);
+
+            if (caption != null && modTypeIcon != null)
             {
-                Transform modTypeIcon = infoPanel.Find("Mod Type Icon");
-                if (modTypeIcon != null)
+                string costText;
+                if (Globals.traderModsTplCost.TryGetValue(item.TemplateId, out costText))
                 {
-                    string costText;
-                    if (Globals.traderModsTplCost.TryGetValue(item.TemplateId, out costText))
+                    TransformPriceTextToColored(ref costText);
+
+                    // Add a black background
+                    Image colorPanel = (Image) DropDownPatch.ItemView_ColorPanel.GetValue(modItemView);
+
+                    GameObject itemPriceTagBackground = GameObject.Instantiate(colorPanel.gameObject);
+                    itemPriceTagBackground.name = "ItemPriceTagBG2";
+                    itemPriceTagBackground.transform.SetParent(modTypeIcon.transform, false);
+                    RectTransform bgRect = itemPriceTagBackground.GetComponent<RectTransform>();
+                    bgRect.anchoredPosition = Vector2.zero;
+                    bgRect.anchorMax = new Vector2(4.5f, 1f);
+                    bgRect.anchorMin = new Vector2(1f, -0.1f);
+                    bgRect.pivot = new Vector2(0.5f, 0.5f);
+                    bgRect.sizeDelta = new Vector2(0.5f, 0.5f);
+                    Image bgImage = itemPriceTagBackground.GetComponent<Image>();
+                    bgImage.color = Color.black;
+
+                    // Create a copy of the name for the price tag
+                    GameObject itemPriceTag = GameObject.Instantiate(caption.gameObject);
+                    itemPriceTag.transform.SetParent(modTypeIcon.transform, false);
+                    itemPriceTag.name = "ItemPriceTag";
+                    itemPriceTag.transform.SetSiblingIndex(itemPriceTagBackground.transform.GetSiblingIndex() + 1);
+
+                    RectTransform priceTagRect = itemPriceTag.GetComponent<RectTransform>();
+                    priceTagRect.anchoredPosition = new Vector2(0, 0);
+                    priceTagRect.anchorMin = new Vector2(1.2f, 0);
+                    priceTagRect.anchorMax = new Vector2(50, 1);
+                    priceTagRect.offsetMin = priceTagRect.offsetMax = priceTagRect.pivot = Vector2.zero;
+
+                    // Finally set the price
+                    CustomTextMeshProUGUI itemPriceText = itemPriceTag.GetComponent<CustomTextMeshProUGUI>();
+                    itemPriceText.text = costText;
+
+                    if (addToGlobalList)
                     {
-                        TransformPriceTextToColored(ref costText);
-
-                        // Add a black background
-                        GameObject colorPanel = parent.Find("Color Panel").gameObject;
-                        GameObject itemPriceTagBackground = GameObject.Instantiate(colorPanel);
-                        itemPriceTagBackground.name = "ItemPriceTagBG";
-                        itemPriceTagBackground.transform.SetParent(modTypeIcon, false);
-                        RectTransform bgRect = itemPriceTagBackground.GetComponent<RectTransform>();
-                        bgRect.anchoredPosition = Vector2.zero;
-                        bgRect.anchorMax = new Vector2(4.5f, 1f);
-                        bgRect.anchorMin = new Vector2(1f, -0.1f);
-                        bgRect.pivot = new Vector2(0.5f, 0.5f);
-                        bgRect.sizeDelta = new Vector2(0.5f, 0.5f);
-                        Image bgImage = itemPriceTagBackground.GetComponent<Image>();
-                        bgImage.color = Color.black;
-
-                        if (addToGlobalList)
-                            Globals.itemsInUseOverlays.Add(itemPriceTagBackground);
-
-                        // Create a copy of the name for the price tag
-                        GameObject itemPriceTag = GameObject.Instantiate(gunName.gameObject);
-                        itemPriceTag.transform.SetParent(modTypeIcon, false);
-                        itemPriceTag.name = "ItemPriceTag";
-                        itemPriceTag.transform.SetSiblingIndex(itemPriceTagBackground.transform.GetSiblingIndex() + 1);
-
-                        RectTransform priceTagRect = itemPriceTag.GetComponent<RectTransform>();
-                        priceTagRect.anchoredPosition = new Vector2(0, 0);
-                        priceTagRect.anchorMin = new Vector2(1.2f, 0);
-                        priceTagRect.anchorMax = new Vector2(50, 1);
-                        priceTagRect.offsetMin = priceTagRect.offsetMax = priceTagRect.pivot = Vector2.zero;
-
-                        if (addToGlobalList)
-                            Globals.itemsInUseOverlays.Add(itemPriceTag);
-
-                        // Finally set the price
-                        CustomTextMeshProUGUI itemPriceText = itemPriceTag.GetComponent<CustomTextMeshProUGUI>();
-                        itemPriceText.text = costText;
-
-
-                        // Disable the not in eq icon
-                        Transform NotInEquipmentIcon = infoPanel.Find("NotInEquipmentIcon");
-                        if (NotInEquipmentIcon != null)
-                            NotInEquipmentIcon.gameObject.SetActive(false);
+                        Globals.itemsInUseOverlays.Add(itemPriceTag);
+                        Globals.itemsInUseOverlays.Add(itemPriceTagBackground);
                     }
+                    else
+                    {
+                        AddPriceTagNoGlobalCleanup(modItemView, itemPriceTag, itemPriceTagBackground);
+                    }
+
+
+                    // Disable the not in eq icon
+                    GameObject NotInEquipmentIcon = (GameObject)DropDownPatch.ModdingSelectableItemView_NotInEquipmentIcon.GetValue(modItemView);
+                    if (NotInEquipmentIcon != null)
+                        NotInEquipmentIcon.SetActive(false);
                 }
             }
         }
 
-        public static void RemoveExistingPriceTag(Transform parent)
+        private static void AddPriceTagNoGlobalCleanup(ModdingSelectableItemView modItemView, GameObject itemPriceTag, GameObject itemPriceTagBG)
         {
-            // If we already added a price tag, destroy that one first
-            Transform existingPriceTag = parent.Find("Info Panel/Mod Type Icon/ItemPriceTag");
-            if (existingPriceTag != null)
-                GameObject.Destroy(existingPriceTag.gameObject);
+            List<GameObject> list = new List<GameObject>();
+            list.Add(itemPriceTag);
+            list.Add(itemPriceTagBG);
+            Globals.addedPriceTags[modItemView] = list;
+        }
 
-            Transform existingPriceTagBG = parent.Find("Info Panel/Mod Type Icon/ItemPriceTagBG");
-            if (existingPriceTagBG != null)
-                GameObject.Destroy(existingPriceTagBG.gameObject);
+        public static void RemoveExistingPriceTag(ModdingSelectableItemView modItemView)
+        {
+            List<GameObject> priceTagGOs = new List<GameObject>();
+            if(Globals.addedPriceTags.TryGetValue(modItemView, out priceTagGOs))
+            {
+                foreach(GameObject priceTag in priceTagGOs)
+                    GameObject.Destroy(priceTag);
+
+                Globals.addedPriceTags[modItemView].Clear();
+            }
         }
 
         public static bool GetColorForItem(Item item, ref Color color, ref bool needsBuying)
@@ -156,7 +172,7 @@ namespace ChooChooTraderModding
             // Sum up all prices
             int amount_rubles = 0;
             int amount_dollars = 0;
-            int amount_euros  = 0;
+            int amount_euros = 0;
 
             foreach (var itemToBuy in Globals.itemsToBuy)
             {
@@ -217,6 +233,7 @@ namespace ChooChooTraderModding
             buildCostText.text = final_text;
         }
     }
+
 
 	public class ModAndCost
 	{

@@ -15,6 +15,8 @@ namespace ChooChooTraderModding
 {
     public class ItemObserveScreenPatch : ModulePatch
     {
+        private static FieldInfo weaponPreviewField = AccessTools.Field(typeof(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen>), "_weaponPreview");
+     
         protected override MethodBase GetTargetMethod()
         {
             return AccessTools.Method(typeof(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen>), nameof(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen>.Update));
@@ -28,8 +30,6 @@ namespace ChooChooTraderModding
 
             if (Globals.isOnModdingScreen)
             {
-                FieldInfo weaponPreviewField = AccessTools.Field(__instance.GetType(), "_weaponPreview");
-
                 if (weaponPreviewField == null)
                     return;
 

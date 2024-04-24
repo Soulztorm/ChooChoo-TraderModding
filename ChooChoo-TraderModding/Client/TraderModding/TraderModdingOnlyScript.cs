@@ -16,8 +16,6 @@ namespace ChooChooTraderModding
     public class TraderModdingOnlyScript : MonoBehaviour
     {
         public EditBuildScreen __instance;
-        public Toggle onlyAvailableToggle;
-        public Toggle onlyTradersToggle;
         public Item weaponBody = null;
 
         TraderData traderData;
@@ -26,9 +24,9 @@ namespace ChooChooTraderModding
         {
             Globals.itemsToBuy.Clear();
 
-            if (tradersOnly && onlyAvailableToggle != null && onlyAvailableToggle.isOn)
+            if (tradersOnly && Globals.checkbox_availableOnly_toggle != null && Globals.checkbox_availableOnly_toggle.isOn)
             {
-                onlyAvailableToggle.SetIsOnWithoutNotify(false);
+                Globals.checkbox_availableOnly_toggle.SetIsOnWithoutNotify(false);
             }
 
             UpdateModView();
@@ -38,9 +36,9 @@ namespace ChooChooTraderModding
         {
             Globals.itemsToBuy.Clear();
 
-            if (onlyAvailable && onlyTradersToggle != null && onlyTradersToggle.isOn)
+            if (onlyAvailable && Globals.checkbox_traderOnly_toggle != null && Globals.checkbox_traderOnly_toggle.isOn)
             {
-                onlyTradersToggle.SetIsOnWithoutNotify(false);
+                Globals.checkbox_traderOnly_toggle.SetIsOnWithoutNotify(false);
             }
 
             __instance.method_41(onlyAvailable);
@@ -74,21 +72,19 @@ namespace ChooChooTraderModding
                 return;
 
             // If we only want to see available mods the BSG way (kekw), do nothing
-            if (__instance.enabled && onlyAvailableToggle != null && onlyAvailableToggle.isOn) 
+            if (__instance.enabled && Globals.checkbox_availableOnly_toggle != null && Globals.checkbox_availableOnly_toggle.isOn) 
                 return;
 
             // Can't get the checkbox for some reason
-            if (onlyTradersToggle == null)
+            if (Globals.checkbox_traderOnly_toggle == null)
                 return;
 
             // Get the player profile and build inv controller class
-            FieldInfo fi_profile = AccessTools.Field(typeof(EditBuildScreen), "profile_0");
-            if (fi_profile ==  null)
-                return;
+            if (EditBuildScreenPatch.fi_profile == null) { ConsoleScreen.LogError("FieldInfo for profile == null"); return; }
 
-            Profile profile = (Profile)fi_profile.GetValue(__instance);
-            if (profile == null)
-                return;
+            Profile profile = (Profile)EditBuildScreenPatch.fi_profile.GetValue(__instance);
+            if (profile == null) { ConsoleScreen.LogError("profile == null"); return; }
+
             InventoryControllerClass inventoryControllerClass = new InventoryControllerClass(profile, false, null);
 
             // Get all mods that exist
@@ -102,15 +98,13 @@ namespace ChooChooTraderModding
             Item[] playeritems_usable_mods = { };
             List<string> allmods_player = GetItems_Player(ref playeritems_usable_mods, TraderModdingConfig.ShowAttachedItems.Value);
 
-            GetItemsOnGun();
-
             StashClass stashClass = itemFactory.CreateFakeStash(null);
             stashClass.Grids[0] = new GClass2500(Guid.NewGuid().ToString(), 30, 1, true, Array.Empty<ItemFilter>(), stashClass);
             TraderControllerClass traderControllerClass = new TraderControllerClass(stashClass, "here lies profile id", Guid.NewGuid().ToString(), false, EOwnerType.Profile, null, null);
             
             foreach (Item item in allmods)
             {
-                if (onlyTradersToggle.isOn)
+                if (Globals.checkbox_traderOnly_toggle.isOn)
                 {
                     bool traderHasMod = traderData.modsAndCosts.Any(mod => mod.tpl == item.TemplateId);
                     if (!(
@@ -229,6 +223,8 @@ namespace ChooChooTraderModding
 
         public void GetItemsOnGun()
         {
+            if (weaponBody == null) { ConsoleScreen.LogError("Couldn't get items on gun, weaponBody == null"); return; }
+
             // Get all mods that are already on the gun we are modding
             List<string> allmods_gun = weaponBody.GetAllItems().OfType<Mod>().Select(mod => mod.TemplateId).ToList();
             Globals.itemsOnGun = allmods_gun.ToArray();

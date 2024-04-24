@@ -3,7 +3,7 @@
 // Credit to wara for the original server mod to receive trader offers!!
 // =====================================================================
 //
-// Tradermodding 1.5.1 servermod - by ChooChoo / wara
+// Tradermodding 1.5.2 servermod - by ChooChoo / wara
 // 
 
 import { DependencyContainer } from "tsyringe";

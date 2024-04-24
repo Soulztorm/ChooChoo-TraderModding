@@ -195,9 +195,9 @@ namespace ChooChooTraderModding.Config
 
         private static void InvertTraderSelectionChanged(object sender, EventArgs e)
         {
-            if (Globals.traderOnlyCheckboxText == null) { return; }
+            if (Globals.checkbox_traderOnly_text == null) { return; }
 
-            Globals.traderOnlyCheckboxText.LocalizationKey = InvertTraderSelection.Value ? "Use NO trader items" : "Use only trader items";
+            Globals.checkbox_traderOnly_text.LocalizationKey = InvertTraderSelection.Value ? "Use NO trader items" : "Use only trader items";
 
             if (Globals.script != null)
                 Globals.script.UpdateModView();
