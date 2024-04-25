@@ -120,6 +120,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /y "$(TargetDir)ChooChoo-TraderModding.dll" "T:\SPT-380\BepInEx\plugins"</PostBuildEvent>
+    <PostBuildEvent>xcopy /y "$(TargetDir)ChooChoo-TraderModding.dll" "T:\SPT-380_second\BepInEx\plugins"</PostBuildEvent>
   </PropertyGroup>
 </Project>

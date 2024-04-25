@@ -31,7 +31,7 @@ namespace ChooChooTraderModding
             ItemViewStats_modTypeIcon = AccessTools.Field(typeof(ItemViewStats), "_modTypeIcon");
             ItemView_ColorPanel = AccessTools.Field(typeof(ItemView), "ColorPanel");
             ModdingSelectableItemView_NotInEquipmentIcon = AccessTools.Field(typeof(ModdingSelectableItemView), "_missingInInventory");
-            ItemView_BackgroundShadow = AccessTools.Field(typeof(ItemView), "BackgroundShadow");
+           // ItemView_BackgroundShadow = AccessTools.Field(typeof(ItemView), "BackgroundShadow");
             ItemView_Border = AccessTools.Field(typeof(ItemView), "_border");
 
             return AccessTools.GetDeclaredMethods(typeof(DropDownMenu)).Single(delegate (MethodInfo m)

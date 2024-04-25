@@ -102,21 +102,34 @@ namespace ChooChooTraderModding
             stashClass.Grids[0] = new GClass2500(Guid.NewGuid().ToString(), 30, 1, true, Array.Empty<ItemFilter>(), stashClass);
             TraderControllerClass traderControllerClass = new TraderControllerClass(stashClass, "here lies profile id", Guid.NewGuid().ToString(), false, EOwnerType.Profile, null, null);
             
-            foreach (Item item in allmods)
+            if (traderData == null)
             {
-                if (Globals.checkbox_traderOnly_toggle.isOn)
+                ConsoleScreen.LogError("Couldn't get traderdata, proceeding without it (Almost all features won't work. Please report this to me)");
+                foreach (Item item in allmods)
                 {
-                    bool traderHasMod = traderData.modsAndCosts.Any(mod => mod.tpl == item.TemplateId);
-                    if (!(
-                        (TraderModdingConfig.InvertTraderSelection.Value ? !traderHasMod : traderHasMod) ||
-                        Globals.itemsOnGun.Contains(item.TemplateId) ||
-                        allmods_player.Contains(item.TemplateId)))
-                        continue;
-                } 
-
-                item.StackObjectsCount = item.StackMaxSize;
-                stashClass.Grid.Add(item);
+                    item.StackObjectsCount = item.StackMaxSize;
+                    stashClass.Grid.Add(item);
+                }
             }
+            else
+            {
+                foreach (Item item in allmods)
+                {
+                    if (Globals.checkbox_traderOnly_toggle.isOn)
+                    {
+                        bool traderHasMod = traderData.modsAndCosts.Any(mod => mod.tpl == item.TemplateId);
+                        if (!(
+                            (TraderModdingConfig.InvertTraderSelection.Value ? !traderHasMod : traderHasMod) ||
+                            Globals.itemsOnGun.Contains(item.TemplateId) ||
+                            allmods_player.Contains(item.TemplateId)))
+                            continue;
+                    }
+
+                    item.StackObjectsCount = item.StackMaxSize;
+                    stashClass.Grid.Add(item);
+                }
+            }
+
 
             GClass2830 manip = new GClass2830(inventoryControllerClass, new LootItemClass[] { (LootItemClass)traderControllerClass.RootItem }, playeritems_usable_mods);
             __instance.UpdateManipulation(manip);

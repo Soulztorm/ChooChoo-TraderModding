@@ -3,7 +3,7 @@
 // Credit to wara for the original server mod to receive trader offers!!
 // =====================================================================
 //
-// Tradermodding 1.5.2 servermod - by ChooChoo / wara
+// Tradermodding 1.5.3 servermod - by ChooChoo / wara
 // 
 
 import { DependencyContainer } from "tsyringe";
@@ -76,7 +76,7 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
             euro_to_ruble: number;
             modsAndCosts: ModAndCost[];
         }
-        const allTraderData: TraderData = {dollar_to_ruble: 0, euro_to_ruble: 0, modsAndCosts: []};
+        const allTraderData: TraderData = {dollar_to_ruble: 146, euro_to_ruble: 150, modsAndCosts: []};
 
         for (const trader of allTraderIds) {
             const traderAssort = traderAssortHelper.getAssort(sessionId, trader, flea);
@@ -111,14 +111,14 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
                     // Dollar
                     if (item._tpl == "5696686a4bdc2da3298b456a"){
                         const t = traderAssort.barter_scheme[item._id][0][0];
-                        if (t !== undefined)
-                            allTraderData.dollar_to_ruble = t.count;
+                        if (t !== undefined && t.count != undefined)
+                            allTraderData.dollar_to_ruble = Math.ceil(t.count);
                     }
                     // Euro
                     else if (item._tpl == "569668774bdc2da2298b4568"){
                         const t = traderAssort.barter_scheme[item._id][0][0];
-                        if (t !== undefined)
-                            allTraderData.euro_to_ruble = t.count;
+                        if (t !== undefined && t.count != undefined)
+                            allTraderData.euro_to_ruble = Math.ceil(t.count);
                     }     
                 }
             }
