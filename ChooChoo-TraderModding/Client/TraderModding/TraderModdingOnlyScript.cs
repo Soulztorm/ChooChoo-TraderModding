@@ -290,16 +290,22 @@ namespace ChooChooTraderModding
 
         public void TryToDetachInUseItems()
         {
+            // Nothing to detach.
+            if (Globals.itemsToDetach.Count == 0)
+                return;
+
+            // Go through all the template IDs we would like to detach
             foreach (string tplID in Globals.itemsToDetach)
             {
                 List<Item> listEquipped = new List<Item>();
                 List<Item> listOnWeapons = new List<Item>();
                 List<Item> listOnAnything = new List<Item>();
 
+                // Find all possible items that we could detach for the given template id
                 var allDetachPossibilities = Globals.itemsInUse_realItem.Where(item => item.TemplateId == tplID).ToList();
-
                 foreach (var item in allDetachPossibilities)
                 {
+                    // Go through the parent hierarchy to find out if it is equipped, attached to weapons, or to something else
                     var parents = item.GetAllParentItems(true);
                     bool addedAsEquippedOrWeapon = false;
                     foreach (var parent in parents)
@@ -343,8 +349,7 @@ namespace ChooChooTraderModding
                     bestCandidateIsEquipped = true;
                 }
 
-                
-
+             
                 if (bestCandidateToDetach != null)
                 {
                     string parentName = bestCandidateToDetach.Parent.Container.ParentItem.ShortName.Localized(null);
@@ -354,7 +359,6 @@ namespace ChooChooTraderModding
                         // Try to move the item to stash
                         if (InteractionsHandlerClass.QuickFindAppropriatePlace(bestCandidateToDetach, __instance.InventoryController, __instance.InventoryController.Inventory.Stash.ToEnumerable<StashClass>(), InteractionsHandlerClass.EMoveItemOrder.TryTransfer, false).Succeeded)
                         {
-                            Globals.itemsToBuy.Remove(tplID);
                             NotificationManagerClass.DisplayMessageNotification("Detached " + bestCandidateToDetach.ShortName.Localized(null) + " from " + parentName);
                         }
                         else
@@ -373,20 +377,13 @@ namespace ChooChooTraderModding
                 }
             }
 
-            Globals.itemsToDetach.Clear();
+            TraderModdingUtils.ClearBuyAndDetachItems();
 
             // Don't know why I can't make the Assemble button see the changes in inventory without doing this...
             __instance.CreateBuildManipulation();
 
             // Overwrite the above manipulation with our own again, and update item states, at least dont get trader data again
             RefreshEverything(false);
-
-            // Disable the detach button if all were detached succesfully
-            if (Globals.itemsToBuy.Count == 0)
-            {
-                if (Globals.detachButtonCanvasGroup != null)
-                    Globals.detachButtonCanvasGroup.alpha = 0.5f;
-            }
         }
     }
 }
