@@ -292,24 +292,88 @@ namespace ChooChooTraderModding
         {
             foreach (string tplID in Globals.itemsToDetach)
             {
-                Item realItem = Globals.itemsInUse_realItem.Find(item => item.TemplateId == tplID);
+                List<Item> listEquipped = new List<Item>();
+                List<Item> listOnWeapons = new List<Item>();
+                List<Item> listOnAnything = new List<Item>();
 
-                if (realItem != null)
+                var allDetachPossibilities = Globals.itemsInUse_realItem.Where(item => item.TemplateId == tplID).ToList();
+
+                foreach (var item in allDetachPossibilities)
                 {
-                    string parentName = realItem.Parent.Container.ParentItem.ShortName.Localized(null);
-
-                    // Try to move the item to stash
-                    if (InteractionsHandlerClass.QuickFindAppropriatePlace(realItem, __instance.InventoryController, __instance.InventoryController.Inventory.Stash.ToEnumerable<StashClass>(), InteractionsHandlerClass.EMoveItemOrder.TryTransfer, false).Succeeded)
+                    var parents = item.GetAllParentItems(true);
+                    bool addedAsEquippedOrWeapon = false;
+                    foreach (var parent in parents)
                     {
-                        Globals.itemsToBuy.Remove(tplID);
-                        NotificationManagerClass.DisplayMessageNotification("Detached " + realItem.ShortName.Localized(null) + " from " + parentName);
+                        if (parent is Weapon)
+                        {
+                            if (__instance.InventoryController.IsItemEquipped(parent))
+                            {
+                                listEquipped.Add(item);
+                            }
+                            else
+                            {
+                                listOnWeapons.Add(item);
+                            }
+                            addedAsEquippedOrWeapon = true;
+                            break;
+                        }
+                    }
+                    if (!addedAsEquippedOrWeapon)
+                    {
+                        listOnAnything.Add(item);
+                    }
+                }
+
+                Item bestCandidateToDetach = null;
+                bool bestCandidateIsEquipped = false;
+                // First get an item that is attached to anything, mounts etc.
+                if (listOnAnything.Count > 0)
+                {
+                    bestCandidateToDetach = listOnAnything[0];
+                }
+                // If there are none, remove from existing weapons
+                else if (listOnWeapons.Count > 0)
+                {
+                    bestCandidateToDetach = listOnWeapons[0];
+                }
+                // Otherwise we won't detach it.
+                else
+                {
+                    bestCandidateToDetach = listEquipped[0];
+                    bestCandidateIsEquipped = true;
+                }
+
+                
+
+                if (bestCandidateToDetach != null)
+                {
+                    string parentName = bestCandidateToDetach.Parent.Container.ParentItem.ShortName.Localized(null);
+
+                    if (!bestCandidateIsEquipped)
+                    {
+                        // Try to move the item to stash
+                        if (InteractionsHandlerClass.QuickFindAppropriatePlace(bestCandidateToDetach, __instance.InventoryController, __instance.InventoryController.Inventory.Stash.ToEnumerable<StashClass>(), InteractionsHandlerClass.EMoveItemOrder.TryTransfer, false).Succeeded)
+                        {
+                            Globals.itemsToBuy.Remove(tplID);
+                            NotificationManagerClass.DisplayMessageNotification("Detached " + bestCandidateToDetach.ShortName.Localized(null) + " from " + parentName);
+                        }
+                        else
+                        {
+                            NotificationManagerClass.DisplayWarningNotification("Detaching of " + bestCandidateToDetach.ShortName.Localized(null) + " from " + parentName + " failed!");
+                        }
                     }
                     else
                     {
-                        NotificationManagerClass.DisplayWarningNotification("Detaching of " + realItem.ShortName.Localized(null) + " from " + parentName + " failed!");
+                        NotificationManagerClass.DisplayWarningNotification("Did not detach " + bestCandidateToDetach.ShortName.Localized(null) + ", because it is equipped!");
                     }
                 }
+                else
+                {
+                    NotificationManagerClass.DisplayWarningNotification("Could not find any appropriate item to detach!");
+                }
             }
+
+            Globals.itemsToDetach.Clear();
 
             // Don't know why I can't make the Assemble button see the changes in inventory without doing this...
             __instance.CreateBuildManipulation();
