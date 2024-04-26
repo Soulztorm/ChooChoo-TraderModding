@@ -9,15 +9,12 @@ using ChooChooTraderModding.Config;
 using EFT.UI;
 using System;
 using EFT.UI.DragAndDrop;
-using HarmonyLib;
-using System.Reflection;
 using TMPro;
-using JetBrains.Annotations;
 using System.Collections.Generic;
 
 namespace ChooChooTraderModding
 {
-    public class TraderModdingUtils
+    internal class TraderModdingUtils
     {
         public const string ruble_colorstring = "<color=#c4bc89> ₽</color>";
         public const string dollar_colorstring = "<color=#03d100> $</color>";
@@ -47,11 +44,11 @@ namespace ChooChooTraderModding
 
         public static void AddItemPriceTag(ModdingSelectableItemView modItemView, Item item, bool addToGlobalList = true)
         {
-            TextMeshProUGUI caption = (TextMeshProUGUI) DropDownPatch.GridItemView_Caption.GetValue(modItemView);
-            ItemViewStats itemViewStats = (ItemViewStats) DropDownPatch.GridItemView_itemViewStats.GetValue(modItemView);
+            TextMeshProUGUI caption = (TextMeshProUGUI)FieldInfos.GridItemView_Caption.GetValue(modItemView);
+            ItemViewStats itemViewStats = (ItemViewStats)FieldInfos.GridItemView_itemViewStats.GetValue(modItemView);
             if (itemViewStats == null) { ConsoleScreen.LogError("Couldn't add price tag (itemViewStats == null)"); return; }
 
-            Image modTypeIcon = (Image) DropDownPatch.ItemViewStats_modTypeIcon.GetValue(itemViewStats);
+            Image modTypeIcon = (Image) FieldInfos.ItemViewStats_modTypeIcon.GetValue(itemViewStats);
 
             if (caption != null && modTypeIcon != null)
             {
@@ -61,7 +58,7 @@ namespace ChooChooTraderModding
                     TransformPriceTextToColored(ref costText);
 
                     // Add a black background
-                    Image colorPanel = (Image) DropDownPatch.ItemView_ColorPanel.GetValue(modItemView);
+                    Image colorPanel = (Image)FieldInfos.ItemView_ColorPanel.GetValue(modItemView);
 
                     GameObject itemPriceTagBackground = GameObject.Instantiate(colorPanel.gameObject);
                     itemPriceTagBackground.name = "ItemPriceTagBG2";
@@ -88,7 +85,7 @@ namespace ChooChooTraderModding
                     priceTagRect.offsetMin = priceTagRect.offsetMax = priceTagRect.pivot = Vector2.zero;
 
                     // Finally set the price
-                    CustomTextMeshProUGUI itemPriceText = itemPriceTag.GetComponent<CustomTextMeshProUGUI>();
+                    TextMeshProUGUI itemPriceText = itemPriceTag.GetComponent<TextMeshProUGUI>();
                     itemPriceText.text = costText;
 
                     if (addToGlobalList)
@@ -103,7 +100,7 @@ namespace ChooChooTraderModding
 
 
                     // Disable the not in eq icon
-                    GameObject NotInEquipmentIcon = (GameObject)DropDownPatch.ModdingSelectableItemView_NotInEquipmentIcon.GetValue(modItemView);
+                    GameObject NotInEquipmentIcon = (GameObject)FieldInfos.ModdingSelectableItemView_NotInEquipmentIcon.GetValue(modItemView);
                     if (NotInEquipmentIcon != null)
                         NotInEquipmentIcon.SetActive(false);
                 }
@@ -130,16 +127,20 @@ namespace ChooChooTraderModding
             }
         }
 
-        public static bool GetColorForItem(Item item, ref Color color, ref bool needsBuying)
+        public static bool GetColorForItem(Item item, ref Color color, ref bool needsBuying, ref bool itemNeedsToBeDetached)
         {
             if (TraderModdingConfig.HighlightOnWeaponItems.Value && Globals.itemsOnGun.Contains(item.TemplateId))
                 color = TraderModdingConfig.ColorOnWeapon.Value;
             else if (TraderModdingConfig.HighlightAttachedItems.Value && Globals.itemsInUseNonBuyable.Contains(item.TemplateId))
+            {
                 color = TraderModdingConfig.ColorAttachedNonBuyable.Value;
+                itemNeedsToBeDetached = true;
+            }
             else if (TraderModdingConfig.HighlightAttachedItems.Value && Globals.itemsInUse.Contains(item.TemplateId))
             {
                 color = TraderModdingConfig.ColorAttached.Value;
                 needsBuying = true;
+                itemNeedsToBeDetached = true;
             }
             else if (TraderModdingConfig.HighlightUsableItems.Value && Globals.itemsAvailable.Contains(item.TemplateId))
                 color = TraderModdingConfig.ColorUsable.Value;
@@ -229,8 +230,17 @@ namespace ChooChooTraderModding
             }
 
 
-            var buildCostText = Globals.buildCostTextGO.GetComponent<CustomTextMeshProUGUI>();
+            var buildCostText = Globals.buildCostTextGO.GetComponent<TextMeshProUGUI>();
             buildCostText.text = final_text;
+        }
+
+        public static void ClearBuyAndDetachItems()
+        {
+            Globals.itemsToBuy.Clear();
+            Globals.itemsToDetach.Clear();
+
+            if (Globals.detachButtonCanvasGroup != null)
+                Globals.detachButtonCanvasGroup.alpha = 0.5f;
         }
     }
 

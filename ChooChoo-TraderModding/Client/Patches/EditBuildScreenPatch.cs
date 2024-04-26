@@ -7,29 +7,24 @@ using ChooChooTraderModding.Config;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using EFT;
 using TMPro;
 
 namespace ChooChooTraderModding
 {
     public class EditBuildScreenPatch : ModulePatch
     {
-        public static FieldInfo fi_profile;
-
         protected override MethodBase GetTargetMethod()
         {
-            fi_profile = AccessTools.Field(typeof(EditBuildScreen), "profile_0");
-
             return AccessTools.Method(typeof(EditBuildScreen), nameof(EditBuildScreen.Awake));
         }
 
         [PatchPostfix]
         public static void Postfix(EditBuildScreen __instance)
         {
-            FieldInfo fi_toggleOnlyAvail = AccessTools.Field(typeof(EditBuildScreen), "_onlyAvailableToggle");
-            if (fi_toggleOnlyAvail == null) { ConsoleScreen.LogError("FieldInfo for onlyAvailableItems == null"); return; }
+            
+            if (FieldInfos.EditBuildScreen__onlyAvailableToggle == null) { ConsoleScreen.LogError("FieldInfo for onlyAvailableItems == null"); return; }
 
-            Globals.checkbox_availableOnly_toggle = (Toggle)fi_toggleOnlyAvail.GetValue(__instance);
+            Globals.checkbox_availableOnly_toggle = (Toggle)FieldInfos.EditBuildScreen__onlyAvailableToggle.GetValue(__instance);
             if (Globals.checkbox_availableOnly_toggle == null) { ConsoleScreen.LogError("Couldn't get checkbox for onlyAvailableItems"); return; }
 
             // Clone the existing checkbox and parent it to the toggle group
@@ -82,16 +77,52 @@ namespace ChooChooTraderModding
             // Scale from the top left
             rectTransform.pivot = new Vector2(0, 1);
             Globals.buildCostPanelGO.transform.position = new Vector3(215, 1014, 0);
+
+
+            // Clone a button to detach used items
+            ButtonWithHint assembleButton = (ButtonWithHint)FieldInfos.EditBuildScreen__assembleButton.GetValue(__instance);
+            if (assembleButton == null) { ConsoleScreen.LogError("Couldn't get assemble button to clone"); return; }
+
+            // Instantiate and parent
+            GameObject detachItemsButton = GameObject.Instantiate(assembleButton.gameObject);
+            detachItemsButton.name = "DetachItems";
+            detachItemsButton.transform.SetParent(assembleButton.transform.parent, false);
+            detachItemsButton.transform.SetSiblingIndex(detachItemsButton.transform.GetSiblingIndex() - 1);
+
+            // Get the layout group this button is in to adjust spacing
+            var layout = assembleButton.transform.parent.gameObject.GetComponent<HorizontalLayoutGroup>();
+            layout.spacing = 5;
+
+            // Overwrite listeners and set label text
+            ButtonWithHint buttonWithHint = detachItemsButton.GetComponent<ButtonWithHint>();
+            Button button = (Button)FieldInfos.ButtonWithHint__button.GetValue(buttonWithHint);
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(new UnityAction(Globals.script.TryToDetachInUseItems));
+            
+            Image background = button.gameObject.GetComponent<Image>();
+            background.color = Color.yellow;
+
+            Transform iconT = button.transform.Find("Icon");
+            if (iconT != null) {
+                iconT.localPosition = Vector3.zero;
+                iconT.localRotation = Quaternion.Euler(0, 0, 180);
+                Image icon = iconT.gameObject.GetComponent<Image>();
+                icon.color = new Color(0.75f, 1f, 0.5f, 1.0f);
+            }
+
+            TextMeshProUGUI label = (TextMeshProUGUI)FieldInfos.ButtonWithHint__label.GetValue(buttonWithHint);
+            label.text = "DETACH MODS IN USE";
+
+
+            Globals.detachButtonCanvasGroup = detachItemsButton.GetComponent<CanvasGroup>();
+            Globals.detachButtonCanvasGroup.alpha = 0.5f;
         }
     }
 
     public class EditBuildScreenShowPatch : ModulePatch
     {             
-        private static FieldInfo fi_weaponName;
         protected override MethodBase GetTargetMethod()
         {
-            fi_weaponName = AccessTools.Field(typeof(EditBuildScreen), "_weaponName");
-
             return AccessTools.FirstMethod(typeof(EditBuildScreen),
                 x => x.Name == nameof(EditBuildScreen.Show));
         }
@@ -103,7 +134,7 @@ namespace ChooChooTraderModding
 
             if (Globals.buildCostTextGO == null && Globals.buildCostPanelGO != null)
             {
-                TextMeshProUGUI weaponName = (TextMeshProUGUI)fi_weaponName.GetValue(__instance);
+                TextMeshProUGUI weaponName = (TextMeshProUGUI)FieldInfos.EditBuildScreen__weaponName.GetValue(__instance);
 
                 if (weaponName != null)
                 {
@@ -114,7 +145,7 @@ namespace ChooChooTraderModding
                     Globals.buildCostTextGO.transform.SetParent(Globals.buildCostPanelGO.transform, false);
                     GameObject.Destroy(Globals.buildCostTextGO.GetComponent<ContentSizeFitter>());
 
-                    var panelText = Globals.buildCostTextGO.GetComponent<CustomTextMeshProUGUI>();
+                    var panelText = Globals.buildCostTextGO.GetComponent<TextMeshProUGUI>();
                     panelText.alignment = TMPro.TextAlignmentOptions.TopRight;
                     panelText.fontSize = TraderModdingConfig.BuildCostFontSize.Value;
                     panelText.text = TraderModdingUtils.build_cost_header;
@@ -127,32 +158,7 @@ namespace ChooChooTraderModding
 
             Globals.script.weaponBody = controller.Item;
 
-            Globals.script.GetItemsOnGun();
-
-            // Get the trader items
-            Globals.script.GetTraderItems();
-
-            // Get items in use
-            Globals.script.GetItemsInUse();
-
-            // Get items in use that are not purchasable
-            Globals.script.GetItemsInUseNotPurchasable();
-
-            // Let's also fix BSG's bug that closing and reopening the modding screen can have the checkbox on without any effect
-            if (Globals.checkbox_availableOnly_toggle.isOn) 
-            {
-                __instance.method_41(true);
-            }
-            else if (Globals.checkbox_traderOnly_toggle.isOn)
-            {
-                Globals.script.UpdateModView();
-            }
-            else
-            {
-                __instance.method_41(false);
-            }
-
-            Globals.script.UpdateBuildCostPanel();
+            Globals.script.RefreshEverything();
         }
     }
 
@@ -173,11 +179,12 @@ namespace ChooChooTraderModding
             Globals.itemsInUseNonBuyable = new string[0];
             Globals.itemsAvailable = new string[0];
             Globals.traderModsTplCost.Clear();
-            Globals.itemsToBuy.Clear();
+
+            TraderModdingUtils.ClearBuyAndDetachItems();
 
             if (Globals.buildCostTextGO != null)
             {
-                var buildCostText = Globals.buildCostTextGO.GetComponent<CustomTextMeshProUGUI>();
+                var buildCostText = Globals.buildCostTextGO.GetComponent<TextMeshProUGUI>();
                 buildCostText.text = TraderModdingUtils.build_cost_header;
             }
         }

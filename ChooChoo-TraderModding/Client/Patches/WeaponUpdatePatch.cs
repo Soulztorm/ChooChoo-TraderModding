@@ -16,7 +16,7 @@ namespace ChooChooTraderModding
         [PatchPrefix]
         static void Prefix()
         {
-            Globals.itemsToBuy.Clear();
+            TraderModdingUtils.ClearBuyAndDetachItems();
         }
     }
 }

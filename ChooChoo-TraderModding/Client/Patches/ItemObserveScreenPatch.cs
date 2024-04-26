@@ -1,22 +1,14 @@
 using System.Reflection;
-using System.Threading.Tasks;
 using Aki.Reflection.Patching;
 using EFT.UI;
 using HarmonyLib;
-using ChooChooTraderModding.Config;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.UI;
-using UnityEngine.PlayerLoop;
 using EFT.UI.WeaponModding;
-using Comfort.Common;
 
 namespace ChooChooTraderModding
 {
     public class ItemObserveScreenPatch : ModulePatch
     {
-        private static FieldInfo weaponPreviewField = AccessTools.Field(typeof(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen>), "_weaponPreview");
-     
         protected override MethodBase GetTargetMethod()
         {
             return AccessTools.Method(typeof(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen>), nameof(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen>.Update));
@@ -30,10 +22,10 @@ namespace ChooChooTraderModding
 
             if (Globals.isOnModdingScreen)
             {
-                if (weaponPreviewField == null)
+                if (FieldInfos.ItemObserveScreen_weaponPreview == null)
                     return;
 
-                WeaponPreview wp = weaponPreviewField.GetValue(__instance) as WeaponPreview;
+                WeaponPreview wp = FieldInfos.ItemObserveScreen_weaponPreview.GetValue(__instance) as WeaponPreview;
 
                 if (wp != null)
                 {

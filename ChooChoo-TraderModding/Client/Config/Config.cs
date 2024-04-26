@@ -30,7 +30,7 @@ namespace ChooChooTraderModding.Config
         public static ConfigEntry<Color> ColorAttached;
         public static ConfigEntry<Color> ColorAttachedNonBuyable;
 
-        private const string InvertTradersSectionTitle = "5. Invert Trader Only Items";
+        private const string InvertTradersSectionTitle = "6. Invert Trader Only Items";
         public static ConfigEntry<bool> InvertTraderSelection;
 
         public static void InitConfig(ConfigFile config)

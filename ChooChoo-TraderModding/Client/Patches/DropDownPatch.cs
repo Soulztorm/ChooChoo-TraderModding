@@ -7,33 +7,15 @@ using HarmonyLib;
 using ChooChooTraderModding.Config;
 using UnityEngine;
 using UnityEngine.UI;
-using System;
 using EFT.UI;
 using EFT.UI.DragAndDrop;
-using System.Collections.Generic;
 
 namespace ChooChooTraderModding
 {
     public class DropDownPatch : ModulePatch
     {
-        public static FieldInfo GridItemView_Caption;
-        public static FieldInfo GridItemView_itemViewStats;
-        public static FieldInfo ItemViewStats_modTypeIcon;
-        public static FieldInfo ItemView_ColorPanel;
-        public static FieldInfo ModdingSelectableItemView_NotInEquipmentIcon;
-        public static FieldInfo ItemView_BackgroundShadow;
-        public static FieldInfo ItemView_Border;
-
         protected override MethodBase GetTargetMethod()
         {
-            GridItemView_Caption = AccessTools.Field(typeof(GridItemView), "Caption");
-            GridItemView_itemViewStats = AccessTools.Field(typeof(GridItemView), "_itemViewStats");
-            ItemViewStats_modTypeIcon = AccessTools.Field(typeof(ItemViewStats), "_modTypeIcon");
-            ItemView_ColorPanel = AccessTools.Field(typeof(ItemView), "ColorPanel");
-            ModdingSelectableItemView_NotInEquipmentIcon = AccessTools.Field(typeof(ModdingSelectableItemView), "_missingInInventory");
-           // ItemView_BackgroundShadow = AccessTools.Field(typeof(ItemView), "BackgroundShadow");
-            ItemView_Border = AccessTools.Field(typeof(ItemView), "_border");
-
             return AccessTools.GetDeclaredMethods(typeof(DropDownMenu)).Single(delegate (MethodInfo m)
             {
                 ParameterInfo[] parameters = m.GetParameters();
@@ -63,11 +45,12 @@ namespace ChooChooTraderModding
             // Color backgrounds if any
             Color backGroundColor = new Color();
             bool itemNeedsToBeBought = false;
-            if (!TraderModdingUtils.GetColorForItem(item, ref backGroundColor, ref itemNeedsToBeBought))
+            bool itemNeedsToBeDetached = false;
+            if (!TraderModdingUtils.GetColorForItem(item, ref backGroundColor, ref itemNeedsToBeBought, ref itemNeedsToBeDetached))
                 return;
 
 
-            Image colorPanel = (Image)ItemView_ColorPanel.GetValue(modItemView as ItemView);
+            Image colorPanel = (Image)FieldInfos.ItemView_ColorPanel.GetValue(modItemView as ItemView);
             if (colorPanel == null) { ConsoleScreen.LogError("Couldn't create background color panel"); return; }
 
             // Add the highlight background
@@ -83,7 +66,7 @@ namespace ChooChooTraderModding
 
         public static void RestoreBorder(ModdingSelectableItemView modItemView)
         {
-            Image borderImg = (Image)ItemView_Border.GetValue(modItemView);
+            Image borderImg = (Image)FieldInfos.ItemView_Border.GetValue(modItemView);
             if (borderImg != null)
             {
                 // Border
@@ -92,16 +75,14 @@ namespace ChooChooTraderModding
                 borderImg.type = Image.Type.Sliced;
                 borderRect.localScale = new Vector3(1.0f, 1.0f, 1.0f);
 
-                // Shadow
-                Transform shadowT = borderImg.transform.parent.Find("Border Shadow");
-                if (shadowT != null)
+                // I can't for the life of me find the border shadow reference in the assembly, so find it by transform :/
+                Image borderShadow = null;
+                Transform borderShadowTransform = modItemView.transform.Find("Border Shadow");
+                if (borderShadowTransform != null)
                 {
-                    //Image borderShadow = (Image)ItemView_BackgroundShadow.GetValue(modItemView);
-                    Image borderShadow = shadowT.gameObject.GetComponent<Image>();
+                    borderShadow = borderShadowTransform.GetComponent<Image>();
                     if (borderShadow != null)
-                    {
                         borderShadow.color = new Color(1f, 1f, 1f, 1f);
-                    }
                 }
             }
         }
@@ -130,14 +111,8 @@ namespace ChooChooTraderModding
 
     public class ModdingScreenSlotViewPatch : ModulePatch
     {
-        private static FieldInfo ModdingScreenSlotView_slot_0;
-        private static FieldInfo ModdingScreenSlotView__moddingItemContainer;
-
         protected override MethodBase GetTargetMethod()
         {
-            ModdingScreenSlotView_slot_0 = AccessTools.Field(typeof(ModdingScreenSlotView), "slot_0");
-            ModdingScreenSlotView__moddingItemContainer = AccessTools.Field(typeof(ModdingScreenSlotView), "_moddingItemContainer");
-
             return AccessTools.FirstMethod(typeof(ModdingScreenSlotView),
                 x => x.Name == nameof(ModdingScreenSlotView.method_0));
         }
@@ -145,44 +120,45 @@ namespace ChooChooTraderModding
         [PatchPostfix]
         private static void PostFix(ModdingScreenSlotView __instance, LootItemClass item)
         {
-            Slot slot = (Slot)ModdingScreenSlotView_slot_0.GetValue(__instance);
-            if (slot == null ||slot.ContainedItem == null)
+            Slot slot = (Slot)FieldInfos.ModdingScreenSlotView_slot_0.GetValue(__instance);
+            if (slot == null || slot.ContainedItem == null)
                 return;
 
-            RectTransform moddingContainer = (RectTransform)ModdingScreenSlotView__moddingItemContainer.GetValue(__instance);
+            RectTransform moddingContainer = (RectTransform)FieldInfos.ModdingScreenSlotView__moddingItemContainer.GetValue(__instance);
             Transform modView = moddingContainer.transform.GetChild(0);
             if (modView == null) return;
 
             ModdingSelectableItemView modItemView = modView.gameObject.GetComponent<ModdingSelectableItemView>();
 
             bool itemNeedsToBeBought = false;
+            bool itemNeedsToBeDetached = false;
 
             if (!TraderModdingConfig.ColorBorders.Value)
                 DropDownPatch.RestoreBorder(modItemView);
             else
             {
-                Image borderImg = (Image)DropDownPatch.ItemView_Border.GetValue(modItemView);
+                Image borderImg = (Image)FieldInfos.ItemView_Border.GetValue(modItemView);
                 if (borderImg == null) return;
                 RectTransform borderRect = borderImg.gameObject.GetComponent<RectTransform>();
 
-                //Image borderShadow = (Image)DropDownPatch.ItemView_BackgroundShadow.GetValue(modItemView);
-                //if (borderShadow == null) return;
+                // I can't for the life of me find the border shadow reference in the assembly, so find it by transform :/
+                Image borderShadow = null;
                 Transform borderShadowTransform = modView.Find("Border Shadow");
-                Image borderShadow = borderShadowTransform.GetComponent<Image>();
-
-                if (borderShadow == null) return;
+                if (borderShadowTransform != null)
+                    borderShadow = borderShadowTransform.GetComponent<Image>();
 
                 bool defaultBorder = false;
 
                 Color backGroundColor = new Color();
-                if (!TraderModdingUtils.GetColorForItem(item, ref backGroundColor, ref itemNeedsToBeBought))
+                if (!TraderModdingUtils.GetColorForItem(item, ref backGroundColor, ref itemNeedsToBeBought, ref itemNeedsToBeDetached))
                 {
                     defaultBorder = true;
                     backGroundColor = new Color(0.2941f, 0.3098f, 0.3216f, 1f);
                 }
 
                 borderImg.color = backGroundColor;
-                borderShadow.color = backGroundColor;
+                if (borderShadow != null)
+                    borderShadow.color = backGroundColor;
 
                 if (defaultBorder)
                 {
@@ -191,7 +167,8 @@ namespace ChooChooTraderModding
                 }
                 else
                 {
-                    borderShadow.color.SetAlpha(1.0f);
+                    if (borderShadow != null)
+                        borderShadow.color.SetAlpha(1.0f);
                     borderImg.color.SetAlpha(1.0f);
                     borderImg.type = Image.Type.Simple;
                     borderRect.localScale = new Vector3(1.1f, 1.1f, 1.0f);
@@ -208,7 +185,15 @@ namespace ChooChooTraderModding
             if (itemNeedsToBeBought)
             {
                 Globals.itemsToBuy.Add(item.TemplateId);
-            }              
+            }
+
+            if (itemNeedsToBeDetached)
+            {
+                Globals.itemsToDetach.Add(item.TemplateId);
+
+                if (Globals.detachButtonCanvasGroup != null)
+                    Globals.detachButtonCanvasGroup.alpha = 1.0f;
+            }
         }
     }
 }

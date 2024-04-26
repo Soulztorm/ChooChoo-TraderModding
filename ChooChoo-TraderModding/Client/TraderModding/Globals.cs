@@ -1,3 +1,4 @@
+using EFT.InventoryLogic;
 using EFT.UI;
 using EFT.UI.DragAndDrop;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using UnityEngine.UI;
 
 namespace ChooChooTraderModding
 {
-    public static class Globals
+    internal static class Globals
     {
         public static bool isOnModdingScreen = false;
 
@@ -20,10 +21,13 @@ namespace ChooChooTraderModding
 
         // Items in use etc.
         public static string[] itemsInUse = new string[0];
+        public static List<Item> itemsInUse_realItem = new List<Item>();
         public static string[] itemsInUseNonBuyable = new string[0];
         public static string[] itemsAvailable = new string[0];
         public static string[] itemsOnGun = new string[0];
+
         public static List<string> itemsToBuy = new List<string>();
+        public static List<string> itemsToDetach = new List<string>();
 
         // Gameobjects
         public static Toggle checkbox_availableOnly_toggle = null;
@@ -36,5 +40,7 @@ namespace ChooChooTraderModding
 
         public static GameObject buildCostPanelGO = null;
         public static GameObject buildCostTextGO = null;
+
+        public static CanvasGroup detachButtonCanvasGroup = null;
     }
 }
