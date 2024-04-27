@@ -354,7 +354,7 @@ namespace ChooChooTraderModding
                 {
                     string parentName = bestCandidateToDetach.Parent.Container.ParentItem.ShortName.Localized(null);
 
-                    if (!bestCandidateIsEquipped)
+                    if (!bestCandidateIsEquipped || TraderModdingConfig.DetachEquippedItems.Value)
                     {
                         // Try to move the item to stash
                         if (InteractionsHandlerClass.QuickFindAppropriatePlace(bestCandidateToDetach, __instance.InventoryController, __instance.InventoryController.Inventory.Stash.ToEnumerable<StashClass>(), InteractionsHandlerClass.EMoveItemOrder.TryTransfer, false).Succeeded)

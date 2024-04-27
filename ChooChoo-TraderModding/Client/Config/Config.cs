@@ -30,7 +30,10 @@ namespace ChooChooTraderModding.Config
         public static ConfigEntry<Color> ColorAttached;
         public static ConfigEntry<Color> ColorAttachedNonBuyable;
 
-        private const string InvertTradersSectionTitle = "6. Invert Trader Only Items";
+        private const string DetachingItemsSectionTitle = "6. Detaching Items";
+        public static ConfigEntry<bool> DetachEquippedItems;
+
+        private const string InvertTradersSectionTitle = "7. Invert Trader Only Items";
         public static ConfigEntry<bool> InvertTraderSelection;
 
         public static void InitConfig(ConfigFile config)
@@ -181,7 +184,11 @@ namespace ChooChooTraderModding.Config
                 new ConfigurationManagerAttributes { IsAdvanced = false, Order = 0 }));
 
 
-
+            DetachEquippedItems = config.Bind(
+                DetachingItemsSectionTitle,
+                "Also detach from equipped guns",
+                false,
+                "When detaching items in use, should we also rip them off your currently equipped guns? (Still prioritizes: Mods attached to other loose mods, then mods attached to guns in stash)");
 
 
             InvertTraderSelection = config.Bind(
