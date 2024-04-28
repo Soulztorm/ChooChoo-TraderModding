@@ -144,6 +144,9 @@ namespace ChooChooTraderModding
             Globals.dollars_to_rubles = traderData.dollar_to_ruble;
             Globals.euros_to_rubles = traderData.euro_to_ruble;
 
+            // I figured for estimating their price, somehow this is 132, no idea about euros, since there are so little items.
+            const int bsg_dollars_to_rubles = 132;
+
             Globals.traderModsTplCost.Clear();
             foreach (ModAndCost mod in traderData.modsAndCosts)
             {
@@ -176,7 +179,7 @@ namespace ChooChooTraderModding
                     if (currencyExistingCost == 'r')
                         existingCostRubles = existingCostAmount;
                     else if (currencyExistingCost == 'd')
-                        existingCostRubles = existingCostAmount * traderData.dollar_to_ruble;
+                        existingCostRubles = existingCostAmount * bsg_dollars_to_rubles;
                     else if (currencyExistingCost == 'e')
                         existingCostRubles = existingCostAmount * traderData.euro_to_ruble;
 
@@ -190,7 +193,7 @@ namespace ChooChooTraderModding
                     if (currencyNewCost == 'r')
                         newCostRubles = newCostAmount;
                     else if (currencyNewCost == 'd')
-                        newCostRubles = newCostAmount * traderData.dollar_to_ruble;
+                        newCostRubles = newCostAmount * bsg_dollars_to_rubles;
                     else if (currencyNewCost == 'e')
                         newCostRubles = newCostAmount * traderData.euro_to_ruble;
 
