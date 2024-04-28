@@ -9,6 +9,8 @@ using UnityEngine;
 using ChooChooTraderModding.Config;
 using TMPro;
 using EFT.Weather;
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace ChooChooTraderModding
 {
@@ -208,16 +210,16 @@ namespace ChooChooTraderModding
         List<string> GetItems_Player(ref Item[] playeritems_usable_mods, bool showAttachedItems)
         {
             if (showAttachedItems)
-                playeritems_usable_mods = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All).ToArray<Item>();
+                playeritems_usable_mods = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.AllExceptHideoutStashes).ToArray<Item>();
             else
-                playeritems_usable_mods = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All).Where(IsItemUsable).ToArray<Item>();
+                playeritems_usable_mods = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.AllExceptHideoutStashes).Where(IsItemUsable).ToArray<Item>();
 
             return playeritems_usable_mods.Select(mod => mod.TemplateId).ToList();
         }
 
         public void GetItemsInUse()
         {
-            var allPlayerItems = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.All);
+            var allPlayerItems = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.AllExceptHideoutStashes);
             var looseItemsPlayer = allPlayerItems.Where(IsItemUsable).Select(mod => mod.TemplateId).ToList();
 
             Globals.itemsInUse_realItem = allPlayerItems.
@@ -288,7 +290,7 @@ namespace ChooChooTraderModding
             UpdateBuildCostPanel();
         }
 
-        public void TryToDetachInUseItems()
+        public async void TryToDetachInUseItems()
         {
             // Nothing to detach.
             if (Globals.itemsToDetach.Count == 0)
@@ -356,8 +358,21 @@ namespace ChooChooTraderModding
 
                     if (!bestCandidateIsEquipped || TraderModdingConfig.DetachEquippedItems.Value)
                     {
+                        bool moveSuccess = false;
+                        GStruct414<GInterface324> moveOperationSimulation = InteractionsHandlerClass.QuickFindAppropriatePlace(bestCandidateToDetach, __instance.InventoryController, __instance.InventoryController.Inventory.Stash.ToEnumerable<StashClass>(), InteractionsHandlerClass.EMoveItemOrder.TryTransfer, true);
+                        if (moveOperationSimulation.Succeeded)
+                        {
+                            var moveItemTask = __instance.InventoryController.TryRunNetworkTransaction(moveOperationSimulation, null);
+                            if (!moveItemTask.IsCompleted)
+                            {
+                                await moveItemTask;
+                            }
+                            moveSuccess = moveItemTask.Result.Succeed;
+                        }
+
                         // Try to move the item to stash
-                        if (InteractionsHandlerClass.QuickFindAppropriatePlace(bestCandidateToDetach, __instance.InventoryController, __instance.InventoryController.Inventory.Stash.ToEnumerable<StashClass>(), InteractionsHandlerClass.EMoveItemOrder.TryTransfer, false).Succeeded)
+                        //if (InteractionsHandlerClass.QuickFindAppropriatePlace(bestCandidateToDetach, __instance.InventoryController, __instance.InventoryController.Inventory.Stash.ToEnumerable<StashClass>(), InteractionsHandlerClass.EMoveItemOrder.TryTransfer, false).Succeeded)
+                        if (moveSuccess)
                         {
                             NotificationManagerClass.DisplayMessageNotification("Detached " + bestCandidateToDetach.ShortName.Localized(null) + " from " + parentName);
                         }
