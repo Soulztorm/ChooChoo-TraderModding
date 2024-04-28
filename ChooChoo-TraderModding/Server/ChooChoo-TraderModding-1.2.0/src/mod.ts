@@ -51,7 +51,8 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
         const traderAssortHelper = container.resolve<TraderAssortHelper>("TraderAssortHelper");
         const itemHelper = container.resolve<ItemHelper>("ItemHelper");
         const profileHelper = container.resolve<ProfileHelper>("ProfileHelper");
-        let addedByUnlimitedCount = false;
+
+        const pmcData = profileHelper.getPmcProfile(sessionId);
 
         type ModAndCost = {
             tpl: string;
@@ -73,7 +74,6 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
                 return;
 
             // Check if the trader is currently locked
-            const pmcData = profileHelper.getPmcProfile(sessionId);
             if (!pmcData.TradersInfo[trader].unlocked){
                 console.log("Trader: " + traderkey + " is locked, skipping items.");
                 return;
@@ -86,7 +86,7 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
                 return;
 
             for (const item of traderAssort.items) {
-                addedByUnlimitedCount = false;
+                let addedByUnlimitedCount = false;
 
                 if (itemHelper.isOfBaseclass(item._tpl, BaseClasses.MOD)) {
                     if (traderAssort.barter_scheme[item._id] !== undefined) {
