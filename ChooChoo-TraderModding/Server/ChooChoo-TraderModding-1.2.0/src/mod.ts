@@ -10,10 +10,10 @@ import { DependencyContainer } from "tsyringe";
 import type { IPreAkiLoadMod } from "@spt-aki/models/external/IPreAkiLoadMod";
 import type { StaticRouterModService } from "@spt-aki/services/mod/staticRouter/StaticRouterModService";
 import { TraderAssortHelper } from "@spt-aki/helpers/TraderAssortHelper";
-import * as modConfig from "../config/config.json";
 import { ItemHelper } from "@spt-aki/helpers/ItemHelper";
 import { BaseClasses } from "@spt-aki/models/enums/BaseClasses";
 import { IBarterScheme } from "@spt-aki/models/eft/common/tables/ITrader";
+import { Traders } from "@spt-aki/models/enums/Traders";
 
 class ChooChooTraderModding implements IPreAkiLoadMod {
 
@@ -43,25 +43,9 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
     }
 
     public getTraderMods(container: DependencyContainer, sessionId: string, flea: boolean): string {
-        const allTraderIds = [
-            "54cb50c76803fa8b248b4571",
-            "54cb57776803fa99248b456e",
-            "58330581ace78e27b8b10cee",
-            "5935c25fb3acc3127c3d8cd9",
-            "5a7c2eca46aef81a7ca2145d",
-            "5ac3b934156ae10c4430e83c",
-            "5c0647fdd443bc2504c2d371"
-        ];
-
         // Roubles, Dollars, Euros
         const money = ["5449016a4bdc2d6f028b456f", "5696686a4bdc2da3298b456a", "569668774bdc2da2298b4568"]
-        //const money_symbols = ["<color=#c4bc89> ₽</color>", "<color=#03d100> $</color>", "<color=#0073de> €</color>"]
         const money_symbols = ["r", "d", "e"]
-
-        // add custom traders defined in the config file
-        for (const trader of modConfig.customTraderIds) {
-            allTraderIds.push(trader);
-        }
 
         const traderAssortHelper = container.resolve<TraderAssortHelper>("TraderAssortHelper");
         const itemHelper = container.resolve<ItemHelper>("ItemHelper");
@@ -76,10 +60,21 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
             euro_to_ruble: number;
             modsAndCosts: ModAndCost[];
         }
-        const allTraderData: TraderData = {dollar_to_ruble: 146, euro_to_ruble: 150, modsAndCosts: []};
+        const allTraderData: TraderData = {dollar_to_ruble: 146, euro_to_ruble: 159, modsAndCosts: []};
 
-        for (const trader of allTraderIds) {
+        const allTraderIds = Object.keys(Traders);   
+        allTraderIds.forEach(traderkey => {
+            const trader = Traders[traderkey];
+            
+            // Skip fence, btr and lighthouse keeper
+            if (traderkey == "FENCE" ||traderkey == "BTR" || traderkey == "LIGHTHOUSEKEEPER")
+                return;
+
             const traderAssort = traderAssortHelper.getAssort(sessionId, trader, flea);
+
+            // Just to be sure so any custom traders don't break.
+            if (traderAssort == undefined || traderAssort.items == undefined)
+                return;
 
             for (const item of traderAssort.items) {
                 addedByUnlimitedCount = false;
@@ -122,7 +117,7 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
                     }     
                 }
             }
-        }
+        })
 
         const json = JSON.stringify(allTraderData);    
         return json;
