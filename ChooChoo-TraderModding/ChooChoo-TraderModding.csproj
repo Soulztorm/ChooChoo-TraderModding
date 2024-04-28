@@ -117,7 +117,6 @@
     <Compile Include="Client\TraderModding\TraderModdingUtils.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Server\ChooChoo-TraderModding-1.2.0\config\config.json" />
     <None Include="Server\ChooChoo-TraderModding-1.2.0\package.json" />
   </ItemGroup>
   <ItemGroup>
