@@ -14,6 +14,7 @@ import { ItemHelper } from "@spt-aki/helpers/ItemHelper";
 import { BaseClasses } from "@spt-aki/models/enums/BaseClasses";
 import { IBarterScheme } from "@spt-aki/models/eft/common/tables/ITrader";
 import { Traders } from "@spt-aki/models/enums/Traders";
+import { ProfileHelper } from "@spt-aki/helpers/ProfileHelper";
 
 class ChooChooTraderModding implements IPreAkiLoadMod {
 
@@ -49,6 +50,7 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
 
         const traderAssortHelper = container.resolve<TraderAssortHelper>("TraderAssortHelper");
         const itemHelper = container.resolve<ItemHelper>("ItemHelper");
+        const profileHelper = container.resolve<ProfileHelper>("ProfileHelper");
         let addedByUnlimitedCount = false;
 
         type ModAndCost = {
@@ -65,10 +67,17 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
         const allTraderIds = Object.keys(Traders);   
         allTraderIds.forEach(traderkey => {
             const trader = Traders[traderkey];
-            
+
             // Skip fence, btr and lighthouse keeper
             if (traderkey == "FENCE" ||traderkey == "BTR" || traderkey == "LIGHTHOUSEKEEPER")
                 return;
+
+            // Check if the trader is currently locked
+            const pmcData = profileHelper.getPmcProfile(sessionId);
+            if (!pmcData.TradersInfo[trader].unlocked){
+                console.log("Trader: " + traderkey + " is locked, skipping items.");
+                return;
+            }
 
             const traderAssort = traderAssortHelper.getAssort(sessionId, trader, flea);
 
