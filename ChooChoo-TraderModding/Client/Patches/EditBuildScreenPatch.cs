@@ -208,8 +208,10 @@ namespace ChooChooTraderModding
                 if (assembled)
                 {
                     Globals.script.GetItemsOnGun();
+                    Globals.script.GetItemsInUse();
+                    Globals.script.GetItemsInUseNotPurchasable();
+
                     Globals.script.__instance.RefreshWeapon();
-                    //Globals.script.UpdateModView();
                 }
             }
         }
