@@ -1,10 +1,10 @@
 {
     "name": "TraderModding",
-    "version": "1.6.2",
+    "version": "1.6.3",
     "main": "src/mod.js",
     "license": "MIT",
     "author": "ChooChoo and wara",
-    "akiVersion": "3.8.0",
+    "akiVersion": "3.8.X",
     "scripts": {
         "setup": "npm i",
         "build": "node ./packageBuild.ts"
