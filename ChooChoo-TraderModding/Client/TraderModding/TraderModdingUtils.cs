@@ -11,11 +11,14 @@ using System;
 using EFT.UI.DragAndDrop;
 using TMPro;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace ChooChooTraderModding
 {
     internal class TraderModdingUtils
     {
+        public static CultureInfo cultureInfo = CultureInfo.CreateSpecificCulture("de-de");
+
         public const string ruble_colorstring = "<color=#c4bc89> ₽</color>";
         public const string dollar_colorstring = "<color=#03d100> $</color>";
         public const string euro_colorstring = "<color=#0073de> €</color>";
@@ -55,6 +58,7 @@ namespace ChooChooTraderModding
                 string costText;
                 if (Globals.traderModsTplCost.TryGetValue(item.TemplateId, out costText))
                 {
+                    TransformPriceTextToAbbreviated(ref costText);
                     TransformPriceTextToColored(ref costText);
 
                     bool isFleaItem = costText[0] == '0';
@@ -157,16 +161,36 @@ namespace ChooChooTraderModding
             return true;
         }
 
+        public static void TransformPriceTextToAbbreviated(ref string priceText)
+        {
+            string priceTextNoCurrency = priceText.Substring(0, priceText.Length - 1);
+
+            int amount = Int32.Parse(priceTextNoCurrency);
+            if (amount < 1000)
+                return;
+
+            bool isFleaItem = priceText[0] == '0';
+            char currency = priceText.Last<char>();
+
+            float amountInK = amount / 1000.0f;
+
+            string finalString = isFleaItem ? "0" : "";
+            finalString += amountInK.ToString("F1", cultureInfo) + 'k' + currency;
+            priceText = finalString;
+        }
+
         public static void TransformPriceTextToColored(ref string priceText)
         {
+            string priceTextNoCurrency = priceText.Substring(0, priceText.Length - 1);
+
             char currency = priceText.Last<char>();
 
             if (currency == 'r')
-                priceText = priceText.Substring(0, priceText.Length - 1) + ruble_colorstring;
+                priceText = priceTextNoCurrency + ruble_colorstring;
             else if (currency == 'd')
-                priceText = priceText.Substring(0, priceText.Length - 1) + dollar_colorstring;
+                priceText = priceTextNoCurrency + dollar_colorstring;
             else if (currency == 'e')
-                priceText = priceText.Substring(0, priceText.Length - 1) + euro_colorstring;
+                priceText = priceTextNoCurrency + euro_colorstring;
         }
 
         public static void UpdateBuildCost()

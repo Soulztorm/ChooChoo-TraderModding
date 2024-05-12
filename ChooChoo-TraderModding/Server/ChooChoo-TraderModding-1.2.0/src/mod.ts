@@ -143,6 +143,7 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
             const configServer = container.resolve<ConfigServer>("ConfigServer");
             const ragfairConfig: IRagfairConfig = configServer.getConfig<IRagfairConfig>(ConfigTypes.RAGFAIR);
 
+            const priceRange = ragfairConfig.dynamic.priceRanges.default;
             const unreasonableModPrices = ragfairConfig.dynamic.unreasonableModPrices["5448fe124bdc2da5018b4567"];
             const priceOverMult = unreasonableModPrices.handbookPriceOverMultiplier;
             const priceAdjustedMult = unreasonableModPrices.newPriceHandbookMultiplier;
@@ -166,9 +167,13 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
                 const handbookPrice = ragfairPriceService.getStaticPriceForItem(tplId);
                 if (fleaPrice > priceOverMult * handbookPrice)
                     dynamicPrice = priceAdjustedMult * handbookPrice;
-            
-                if (dynamicPrice == undefined || dynamicPrice == 1)
+
+                // If price was either undefined, or handbook price was one, skip this item        
+                if (dynamicPrice == undefined || dynamicPrice == priceAdjustedMult)
                     continue;
+
+                // Adjust to minimum price range
+                dynamicPrice *= priceRange.min;
 
                 const mac: ModAndCost  = { "tpl": tplId, "cost": "0" + Math.ceil(dynamicPrice).toString() + "r"};
                 allTraderData.modsAndCosts.push(mac);
