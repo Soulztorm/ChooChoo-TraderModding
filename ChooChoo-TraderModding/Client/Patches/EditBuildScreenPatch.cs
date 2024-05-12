@@ -158,6 +158,8 @@ namespace ChooChooTraderModding
 
             Globals.script.weaponBody = controller.Item;
 
+            TraderModdingUtils.ClearBuyAndDetachItems();
+
             Globals.script.RefreshEverything();
         }
     }

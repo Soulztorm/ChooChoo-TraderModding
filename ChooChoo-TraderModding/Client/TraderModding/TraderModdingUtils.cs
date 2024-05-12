@@ -57,6 +57,10 @@ namespace ChooChooTraderModding
                 {
                     TransformPriceTextToColored(ref costText);
 
+                    bool isFleaItem = costText[0] == '0';
+                    if (isFleaItem)
+                        costText = costText.Substring(1);
+
                     // Add a black background
                     Image colorPanel = (Image)FieldInfos.ItemView_ColorPanel.GetValue(modItemView);
 
@@ -70,7 +74,7 @@ namespace ChooChooTraderModding
                     bgRect.pivot = new Vector2(0.5f, 0.5f);
                     bgRect.sizeDelta = new Vector2(0.5f, 0.5f);
                     Image bgImage = itemPriceTagBackground.GetComponent<Image>();
-                    bgImage.color = Color.black;
+                    bgImage.color = isFleaItem ? new Color(0.33f, 0.0f, 0.0f) : Color.black;
 
                     // Create a copy of the name for the price tag
                     GameObject itemPriceTag = GameObject.Instantiate(caption.gameObject);

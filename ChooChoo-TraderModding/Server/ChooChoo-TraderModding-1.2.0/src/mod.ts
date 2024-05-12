@@ -15,6 +15,13 @@ import { BaseClasses } from "@spt-aki/models/enums/BaseClasses";
 import { IBarterScheme } from "@spt-aki/models/eft/common/tables/ITrader";
 import { Traders } from "@spt-aki/models/enums/Traders";
 import { ProfileHelper } from "@spt-aki/helpers/ProfileHelper";
+import { RagfairServerHelper } from "@spt-aki/helpers/RagfairServerHelper";
+import { RagfairPriceService } from "@spt-aki/services/RagfairPriceService";
+
+import { ConfigServer } from "@spt-aki/servers/ConfigServer";
+import { ConfigTypes } from "@spt-aki/models/enums/ConfigTypes";
+import { IRagfairConfig } from "@spt-aki/models/spt/config/IRagfairConfig";
+import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
 
 class ChooChooTraderModding implements IPreAkiLoadMod {
 
@@ -51,6 +58,9 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
         const traderAssortHelper = container.resolve<TraderAssortHelper>("TraderAssortHelper");
         const itemHelper = container.resolve<ItemHelper>("ItemHelper");
         const profileHelper = container.resolve<ProfileHelper>("ProfileHelper");
+        const ragfairServerHelper = container.resolve<RagfairServerHelper>("RagfairServerHelper");
+        const ragfairPriceService = container.resolve<RagfairPriceService>("RagfairPriceService");
+        const dbServer = container.resolve<DatabaseServer>("DatabaseServer");
 
         const pmcData = profileHelper.getPmcProfile(sessionId);
 
@@ -79,7 +89,7 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
                 return;
             }
 
-            const traderAssort = traderAssortHelper.getAssort(sessionId, trader, flea);
+            const traderAssort = traderAssortHelper.getAssort(sessionId, trader, false);
 
             // Just to be sure so any custom traders don't break.
             if (traderAssort == undefined || traderAssort.items == undefined)
@@ -127,6 +137,44 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
                 }
             }
         })
+
+        // Also add items not from traders but in flea
+        if (flea){
+            const configServer = container.resolve<ConfigServer>("ConfigServer");
+            const ragfairConfig: IRagfairConfig = configServer.getConfig<IRagfairConfig>(ConfigTypes.RAGFAIR);
+
+            const unreasonableModPrices = ragfairConfig.dynamic.unreasonableModPrices["5448fe124bdc2da5018b4567"];
+            const priceOverMult = unreasonableModPrices.handbookPriceOverMultiplier;
+            const priceAdjustedMult = unreasonableModPrices.newPriceHandbookMultiplier;
+
+
+            const templates = dbServer.getTables().templates.items;
+            //const allItems = itemHelper.getItems();
+
+            for (const tplId in templates){
+                if (!itemHelper.isOfBaseclass(tplId, BaseClasses.MOD) || 
+                    !ragfairServerHelper.isItemValidRagfairItem([itemHelper.isValidItem(tplId), templates[tplId]]))
+                    continue;
+
+                const containsItem = allTraderData.modsAndCosts.some((itemToCheck) => itemToCheck.tpl === tplId);
+                if (containsItem)
+                    continue;
+
+                const fleaPrice = ragfairPriceService.getFleaPriceForItem(tplId);  
+                let dynamicPrice = fleaPrice;
+            
+                const handbookPrice = ragfairPriceService.getStaticPriceForItem(tplId);
+                if (fleaPrice > priceOverMult * handbookPrice)
+                    dynamicPrice = priceAdjustedMult * handbookPrice;
+            
+                if (dynamicPrice == undefined || dynamicPrice == 1)
+                    continue;
+
+                const mac: ModAndCost  = { "tpl": tplId, "cost": "0" + Math.ceil(dynamicPrice).toString() + "r"};
+                allTraderData.modsAndCosts.push(mac);
+                //console.log("Added flea item: " + item._id + " / " + dynamicPrice.toString());
+            }
+        }        
 
         const json = JSON.stringify(allTraderData);    
         return json;

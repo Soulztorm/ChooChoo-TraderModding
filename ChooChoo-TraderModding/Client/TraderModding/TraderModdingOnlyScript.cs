@@ -118,7 +118,7 @@ namespace ChooChooTraderModding
                 {
                     if (Globals.checkbox_traderOnly_toggle.isOn)
                     {
-                        bool traderHasMod = traderData.modsAndCosts.Any(mod => mod.tpl == item.TemplateId);
+                        bool traderHasMod = traderData.modsAndCosts.Any(mod => mod.tpl == item.TemplateId && mod.cost[0] != '0');
                         if (!(
                             (TraderModdingConfig.InvertTraderSelection.Value ? !traderHasMod : traderHasMod) ||
                             Globals.itemsOnGun.Contains(item.TemplateId) ||
@@ -140,7 +140,7 @@ namespace ChooChooTraderModding
         public void GetTraderItems()
         {
             // Get all mods available from traders
-            traderData = TraderModdingUtils.GetData(false);
+            traderData = TraderModdingUtils.GetData(true);
             Globals.dollars_to_rubles = traderData.dollar_to_ruble;
             Globals.euros_to_rubles = traderData.euro_to_ruble;
 
