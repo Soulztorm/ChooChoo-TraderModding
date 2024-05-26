@@ -58,7 +58,9 @@ namespace ChooChooTraderModding
                 string costText;
                 if (Globals.traderModsTplCost.TryGetValue(item.TemplateId, out costText))
                 {
-                    TransformPriceTextToAbbreviated(ref costText);
+                    if (TraderModdingConfig.AbbreviatePrices.Value)
+                        TransformPriceTextToAbbreviated(ref costText);
+
                     TransformPriceTextToColored(ref costText);
 
                     bool isFleaItem = costText[0] == '0';

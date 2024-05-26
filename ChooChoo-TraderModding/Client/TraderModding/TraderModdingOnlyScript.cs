@@ -140,7 +140,7 @@ namespace ChooChooTraderModding
         public void GetTraderItems()
         {
             // Get all mods available from traders
-            traderData = TraderModdingUtils.GetData(true);
+            traderData = TraderModdingUtils.GetData(TraderModdingConfig.ShowFleaPriceTags.Value);
             Globals.dollars_to_rubles = traderData.dollar_to_ruble;
             Globals.euros_to_rubles = traderData.euro_to_ruble;
 

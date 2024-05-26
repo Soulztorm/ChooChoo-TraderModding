@@ -11,9 +11,11 @@ namespace ChooChooTraderModding.Config
         public static ConfigEntry<bool> ColorBorders;
         public static ConfigEntry<bool> ShowAttachedItems;
 
-        private const string TraderPricesTitle = "2. Trader Price Tags";
+        private const string TraderPricesTitle = "2. Price Tags";
         public static ConfigEntry<bool> ShowPriceTags;
+        public static ConfigEntry<bool> ShowFleaPriceTags;
         public static ConfigEntry<bool> ShowPriceTagsOnWeaponItems;
+        public static ConfigEntry<bool> AbbreviatePrices;
 
         private const string BuildCostTitle = "3. Build Cost";
         public static ConfigEntry<bool> ShowBuildCost;
@@ -77,9 +79,19 @@ namespace ChooChooTraderModding.Config
                 true,
                 new ConfigDescription("Show trader price tags on mod icons",
                 null,
-                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 1 })
+                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 3 })
             );
             ShowPriceTags.SettingChanged += UpdateModView;
+
+            ShowFleaPriceTags = config.Bind(
+                TraderPricesTitle,
+                "Show flea price tags",
+                true,
+                new ConfigDescription("Show flea market price tags if the item is not available from traders",
+                null,
+                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 2 })
+            );
+            ShowFleaPriceTags.SettingChanged += UpdateModViewFlea;
 
             ShowPriceTagsOnWeaponItems = config.Bind(
                 TraderPricesTitle,
@@ -87,9 +99,19 @@ namespace ChooChooTraderModding.Config
                 false,
                 new ConfigDescription("Also show trader price tags of mods that are already on the weapon you are currently modding (Default off, looks cleaner to me)",
                 null,
-                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 0 })
+                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 1 })
             );
             ShowPriceTagsOnWeaponItems.SettingChanged += UpdateModView;
+
+            AbbreviatePrices = config.Bind(
+                TraderPricesTitle,
+                "Abbreviate prices",
+                true,
+                new ConfigDescription("Abbreviate prices, f.e. 69420 becomes 69,4k",
+                null,
+                new ConfigurationManagerAttributes { IsAdvanced = false, Order = 0 })
+            );
+            AbbreviatePrices.SettingChanged += UpdateModView;
 
 
 
@@ -208,6 +230,14 @@ namespace ChooChooTraderModding.Config
 
             if (Globals.script != null)
                 Globals.script.UpdateModView();
+        }
+
+        private static void UpdateModViewFlea(object sender, EventArgs e)
+        {
+            if (Globals.script == null) { return; }
+
+            Globals.script.GetTraderItems();
+            Globals.script.UpdateModView();
         }
 
         private static void UpdateModView(object sender, EventArgs e)
