@@ -8,9 +8,6 @@ using EFT.InventoryLogic;
 using UnityEngine;
 using ChooChooTraderModding.Config;
 using TMPro;
-using EFT.Weather;
-using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
 
 namespace ChooChooTraderModding
 {
@@ -47,7 +44,7 @@ namespace ChooChooTraderModding
 
         bool IsLooseItem(Item item)
         {
-            return (item.CurrentAddress is GClass2769 && item.Parent.Container.ParentItem.IsContainer);
+            return (item.CurrentAddress is ItemAddressClass && item.Parent.Container.ParentItem.IsContainer);
         }
 
         bool IsItemUsable(Item itemToCheck)
@@ -100,7 +97,7 @@ namespace ChooChooTraderModding
             List<string> allmods_player = GetItems_Player(ref playeritems_usable_mods, TraderModdingConfig.ShowAttachedItems.Value);
 
             StashClass stashClass = itemFactory.CreateFakeStash(null);
-            stashClass.Grids[0] = new GClass2500(Guid.NewGuid().ToString(), 30, 1, true, Array.Empty<ItemFilter>(), stashClass);
+            stashClass.Grids[0] = new GClass2514(Guid.NewGuid().ToString(), 30, 1, true, Array.Empty<ItemFilter>(), stashClass);
             TraderControllerClass traderControllerClass = new TraderControllerClass(stashClass, "here lies profile id", Guid.NewGuid().ToString(), false, EOwnerType.Profile, null, null);
             
             if (traderData == null)
@@ -132,7 +129,7 @@ namespace ChooChooTraderModding
             }
 
 
-            GClass2830 manip = new GClass2830(inventoryControllerClass, new LootItemClass[] { (LootItemClass)traderControllerClass.RootItem }, playeritems_usable_mods);
+            GClass2847 manip = new GClass2847(inventoryControllerClass, new LootItemClass[] { (LootItemClass)traderControllerClass.RootItem }, playeritems_usable_mods);
             __instance.UpdateManipulation(manip);
             __instance.RefreshWeapon();
         }
@@ -356,7 +353,7 @@ namespace ChooChooTraderModding
                     if (!bestCandidateIsEquipped || TraderModdingConfig.DetachEquippedItems.Value)
                     {
                         bool moveSuccess = false;
-                        GStruct414<GInterface324> moveOperationSimulation = InteractionsHandlerClass.QuickFindAppropriatePlace(bestCandidateToDetach, __instance.InventoryController, __instance.InventoryController.Inventory.Stash.ToEnumerable<StashClass>(), InteractionsHandlerClass.EMoveItemOrder.TryTransfer, true);
+                        GStruct414<GInterface339> moveOperationSimulation = InteractionsHandlerClass.QuickFindAppropriatePlace(bestCandidateToDetach, __instance.InventoryController, __instance.InventoryController.Inventory.Stash.ToEnumerable<StashClass>(), InteractionsHandlerClass.EMoveItemOrder.TryTransfer, true);
                         if (moveOperationSimulation.Succeeded)
                         {
                             var moveItemTask = __instance.InventoryController.TryRunNetworkTransaction(moveOperationSimulation, null);

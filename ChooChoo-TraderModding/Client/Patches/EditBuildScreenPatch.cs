@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 using System.Threading.Tasks;
-using Aki.Reflection.Patching;
+using SPT.Reflection.Patching;
 using EFT.UI;
 using HarmonyLib;
 using ChooChooTraderModding.Config;
@@ -128,7 +128,7 @@ namespace ChooChooTraderModding
         }
 
         [PatchPostfix]
-        public static void Postfix(EditBuildScreen __instance, EditBuildScreen.GClass3126 controller)
+        public static void Postfix(EditBuildScreen __instance, EditBuildScreen.GClass3151 controller)
         {
             Globals.isOnModdingScreen = true;
 
@@ -196,8 +196,8 @@ namespace ChooChooTraderModding
     {
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.FirstMethod(typeof(GClass2832),
-                x => x.Name == nameof(GClass2832.Assemble));
+            return AccessTools.FirstMethod(typeof(GClass2849),
+                x => x.Name == nameof(GClass2849.Assemble));
         }
 
         [PatchPostfix]

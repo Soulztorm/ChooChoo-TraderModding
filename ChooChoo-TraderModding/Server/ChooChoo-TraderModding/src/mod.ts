@@ -3,29 +3,29 @@
 // Credit to wara for the original server mod to receive trader offers!!
 // =====================================================================
 //
-// Tradermodding 1.7.0 servermod - by ChooChoo / wara
+// Tradermodding 1.8.0 servermod - by ChooChoo
 // 
 
 import { DependencyContainer } from "tsyringe";
-import type { IPreAkiLoadMod } from "@spt-aki/models/external/IPreAkiLoadMod";
-import type { StaticRouterModService } from "@spt-aki/services/mod/staticRouter/StaticRouterModService";
-import { TraderAssortHelper } from "@spt-aki/helpers/TraderAssortHelper";
-import { ItemHelper } from "@spt-aki/helpers/ItemHelper";
-import { BaseClasses } from "@spt-aki/models/enums/BaseClasses";
-import { IBarterScheme } from "@spt-aki/models/eft/common/tables/ITrader";
-import { Traders } from "@spt-aki/models/enums/Traders";
-import { ProfileHelper } from "@spt-aki/helpers/ProfileHelper";
-import { RagfairServerHelper } from "@spt-aki/helpers/RagfairServerHelper";
-import { RagfairPriceService } from "@spt-aki/services/RagfairPriceService";
+import type { IPreSptLoadMod } from "@spt/models/external/IPreSptLoadMod";
+import type { StaticRouterModService } from "@spt/services/mod/staticRouter/StaticRouterModService";
+import { TraderAssortHelper } from "@spt/helpers/TraderAssortHelper";
+import { ItemHelper } from "@spt/helpers/ItemHelper";
+import { BaseClasses } from "@spt/models/enums/BaseClasses";
+import { IBarterScheme } from "@spt/models/eft/common/tables/ITrader";
+import { Traders } from "@spt/models/enums/Traders";
+import { ProfileHelper } from "@spt/helpers/ProfileHelper";
+import { RagfairServerHelper } from "@spt/helpers/RagfairServerHelper";
+import { RagfairPriceService } from "@spt/services/RagfairPriceService";
 
-import { ConfigServer } from "@spt-aki/servers/ConfigServer";
-import { ConfigTypes } from "@spt-aki/models/enums/ConfigTypes";
-import { IRagfairConfig } from "@spt-aki/models/spt/config/IRagfairConfig";
-import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
+import { ConfigServer } from "@spt/servers/ConfigServer";
+import { ConfigTypes } from "@spt/models/enums/ConfigTypes";
+import { IRagfairConfig } from "@spt/models/spt/config/IRagfairConfig";
+import { DatabaseServer } from "@spt/servers/DatabaseServer";
 
-class ChooChooTraderModding implements IPreAkiLoadMod {
+class ChooChooTraderModding implements IPreSptLoadMod {
 
-    public preAkiLoad(container: DependencyContainer): void {
+    public preSptLoad(container: DependencyContainer): void {
         const staticRouterModService = container.resolve<StaticRouterModService>("StaticRouterModService");
 
         staticRouterModService.registerStaticRouter(
@@ -33,14 +33,14 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
             [
                 {
                     url: "/choochoo-trader-modding/json",
-                    action: (url, info, sessionId, output) => {
+                    action: async (url, info, sessionId, output) => {
                         const json = this.getTraderMods(container, sessionId, false);
                         return json;
                     }
                 },
                 {
                     url: "/choochoo-trader-modding/json-flea",
-                    action: (url, info, sessionId, output) => {
+                    action: async (url, info, sessionId, output) => {
                         const json = this.getTraderMods(container, sessionId, true);
                         return json;
                     }
@@ -201,4 +201,4 @@ class ChooChooTraderModding implements IPreAkiLoadMod {
     }
 }
 
-module.exports = { mod: new ChooChooTraderModding() }
+export const mod = new ChooChooTraderModding();

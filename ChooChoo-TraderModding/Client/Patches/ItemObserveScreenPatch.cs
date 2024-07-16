@@ -1,5 +1,5 @@
 using System.Reflection;
-using Aki.Reflection.Patching;
+using SPT.Reflection.Patching;
 using EFT.UI;
 using HarmonyLib;
 using UnityEngine;
@@ -11,11 +11,11 @@ namespace ChooChooTraderModding
     {
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen>), nameof(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen>.Update));
+            return AccessTools.Method(typeof(ItemObserveScreen<EditBuildScreen.GClass3151, EditBuildScreen>), nameof(ItemObserveScreen<EditBuildScreen.GClass3151, EditBuildScreen>.Update));
         }
 
         [PatchPostfix]
-        public static void Postfix(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen> __instance)
+        public static void Postfix(ItemObserveScreen<EditBuildScreen.GClass3151, EditBuildScreen> __instance)
         {
             if (__instance == null)
                 return;
@@ -71,7 +71,7 @@ namespace ChooChooTraderModding
     {
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen>), nameof(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen>.method_6));
+            return AccessTools.Method(typeof(ItemObserveScreen<EditBuildScreen.GClass3151, EditBuildScreen>), nameof(ItemObserveScreen<EditBuildScreen.GClass3151, EditBuildScreen>.method_6));
         }
 
         [PatchPostfix]

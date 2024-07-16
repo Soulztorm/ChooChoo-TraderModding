@@ -12,8 +12,8 @@ namespace ChooChooTraderModding
         public static FieldInfo EditBuildScreen_profile_0 = AccessTools.Field(typeof(EditBuildScreen), "profile_0");
         public static FieldInfo EditBuildScreen__weaponName = AccessTools.Field(typeof(EditBuildScreen), "_weaponName");
         public static FieldInfo EditBuildScreen__assembleButton = AccessTools.Field(typeof(EditBuildScreen), "_assembleButton");
-        public static FieldInfo EditBuildScreen_gclass2766_0 = AccessTools.Field(typeof(EditBuildScreen), "gclass2766_0");
-        public static FieldInfo EditBuildScreen_gclass2829_1 = AccessTools.Field(typeof(EditBuildScreen), "gclass2829_1");
+        public static FieldInfo EditBuildScreen_gclass2766_0 = AccessTools.Field(typeof(EditBuildScreen), "gclass2782_0");
+        public static FieldInfo EditBuildScreen_gclass2829_1 = AccessTools.Field(typeof(EditBuildScreen), "gclass2846_1");
 
         public static FieldInfo ButtonWithHint__button = AccessTools.Field(typeof(ButtonWithHint), "_button");
         public static FieldInfo ButtonWithHint__label = AccessTools.Field(typeof(ButtonWithHint), "_label");
@@ -27,7 +27,7 @@ namespace ChooChooTraderModding
         public static FieldInfo ModdingScreenSlotView_slot_0 = AccessTools.Field(typeof(ModdingScreenSlotView), "slot_0");
         public static FieldInfo ModdingScreenSlotView__moddingItemContainer = AccessTools.Field(typeof(ModdingScreenSlotView), "_moddingItemContainer");
 
-        public static FieldInfo ItemObserveScreen_weaponPreview = AccessTools.Field(typeof(ItemObserveScreen<EditBuildScreen.GClass3126, EditBuildScreen>), "_weaponPreview");
+        public static FieldInfo ItemObserveScreen_weaponPreview = AccessTools.Field(typeof(ItemObserveScreen<EditBuildScreen.GClass3151, EditBuildScreen>), "_weaponPreview");
 
 
     }
