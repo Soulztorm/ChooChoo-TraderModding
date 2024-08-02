@@ -8,6 +8,8 @@ using EFT.InventoryLogic;
 using UnityEngine;
 using ChooChooTraderModding.Config;
 using TMPro;
+using EFT.UI.DragAndDrop;
+using UnityEngine.UI;
 
 namespace ChooChooTraderModding
 {
@@ -296,6 +298,7 @@ namespace ChooChooTraderModding
                 List<Item> listEquipped = new List<Item>();
                 List<Item> listOnWeapons = new List<Item>();
                 List<Item> listOnAnything = new List<Item>();
+                Dictionary<Item, Item> itemParents = new Dictionary<Item, Item>();
 
                 // Find all possible items that we could detach for the given template id
                 var allDetachPossibilities = Globals.itemsInUse_realItem.Where(item => item.TemplateId == tplID).ToList();
@@ -317,12 +320,14 @@ namespace ChooChooTraderModding
                                 listOnWeapons.Add(item);
                             }
                             addedAsEquippedOrWeapon = true;
+                            itemParents.Add(item, parent);
                             break;
                         }
                     }
                     if (!addedAsEquippedOrWeapon)
                     {
                         listOnAnything.Add(item);
+                        itemParents.Add(item, item.Parent.Container.ParentItem);
                     }
                 }
 
@@ -348,7 +353,23 @@ namespace ChooChooTraderModding
              
                 if (bestCandidateToDetach != null)
                 {
-                    string parentName = bestCandidateToDetach.Parent.Container.ParentItem.ShortName.Localized(null);
+                    Item parentItem = itemParents[bestCandidateToDetach];
+                    string parentName = parentItem.ShortName.Localized(null);
+
+                    var icon = ItemViewFactory.LoadItemIcon(parentItem, 1, false);
+                    icon.Changed.Bind(() =>
+                    {
+                        GameObject iconGO = new GameObject("ItemGo");
+                        var img = iconGO.AddComponent<Image>();
+                        img.sprite = icon.Sprite;
+                        img.preserveAspect = true;
+                        iconGO.transform.parent = Globals.buildCostPanelGO.transform;
+                    });
+
+                    
+
+                   
+
 
                     if (!bestCandidateIsEquipped || TraderModdingConfig.DetachEquippedItems.Value)
                     {
