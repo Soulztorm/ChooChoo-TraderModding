@@ -147,8 +147,11 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /y "$(TargetDir)ChooChoo-TraderModding.dll" "T:\SPT-383\BepInEx\plugins"
-xcopy /y "$(ProjectDir)Server\ChooChoo-TraderModding\src\mod.ts" "T:\SPT-383\user\mods\ChooChoo-TraderModding\src"
-xcopy /y "$(ProjectDir)Server\ChooChoo-TraderModding\package.json" "T:\SPT-383\user\mods\ChooChoo-TraderModding"</PostBuildEvent>
+    <PostBuildEvent>xcopy /y "$(TargetPath)" "$(ProjectDir)..\..\..\BepInEx\plugins"
+
+mkdir "$(ProjectDir)..\..\..\user\mods\ChooChoo-TraderModding\"
+mkdir "$(ProjectDir)..\..\..\user\mods\ChooChoo-TraderModding\src"
+xcopy /y "$(ProjectDir)Server\ChooChoo-TraderModding\src\mod.ts" "$(ProjectDir)..\..\..\user\mods\ChooChoo-TraderModding\src"
+xcopy /y "$(ProjectDir)Server\ChooChoo-TraderModding\package.json" "$(ProjectDir)..\..\..\user\mods\ChooChoo-TraderModding"</PostBuildEvent>
   </PropertyGroup>
 </Project>
