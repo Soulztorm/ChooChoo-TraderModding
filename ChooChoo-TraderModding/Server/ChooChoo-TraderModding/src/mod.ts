@@ -4,7 +4,7 @@
 // =====================================================================
 //
 // Tradermodding 1.8.0 servermod - by ChooChoo
-// SPT 3.10 Update - By Rob Neu
+// 1.9.0 - Update for SPT 3.10 - By Rob Neu
 
 import { DependencyContainer } from "tsyringe";
 import type { IPreSptLoadMod } from "@spt/models/external/IPreSptLoadMod";
