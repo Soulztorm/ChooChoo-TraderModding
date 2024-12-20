@@ -44,7 +44,7 @@ namespace ChooChooTraderModding
 
         bool IsLooseItem(Item item)
         {
-            return (item.CurrentAddress is ItemAddressClass && item.Parent.Container.ParentItem.IsContainer);
+            return (item.CurrentAddress is ItemAddress && item.Parent.Container.ParentItem.IsContainer);
         }
 
         bool IsItemUsable(Item itemToCheck)
@@ -83,22 +83,22 @@ namespace ChooChooTraderModding
             Profile profile = (Profile)FieldInfos.EditBuildScreen_profile_0.GetValue(__instance);
             if (profile == null) { ConsoleScreen.LogError("profile == null"); return; }
 
-            InventoryControllerClass inventoryControllerClass = new InventoryControllerClass(profile, false, null);
+            InventoryController inventoryController = new InventoryController(profile, false);
 
             // Get all mods that exist
-            ItemFactory itemFactory = Singleton<ItemFactory>.Instance;
-            if (itemFactory == null)
+            ItemFactoryClass itemFactoryClass = Singleton<ItemFactoryClass>.Instance;
+            if (itemFactoryClass == null)
                 return;
 
-            Item[] allmods = itemFactory.CreateAllModsEver();
+            Item[] allmods = itemFactoryClass.CreateAllModsEver();
 
             // Get all usable mods on the player and not on any weapon
             Item[] playeritems_usable_mods = { };
-            List<string> allmods_player = GetItems_Player(ref playeritems_usable_mods, TraderModdingConfig.ShowAttachedItems.Value);
+            List<MongoID> allmods_player = GetItems_Player(ref playeritems_usable_mods, TraderModdingConfig.ShowAttachedItems.Value);
 
-            StashClass stashClass = itemFactory.CreateFakeStash(null);
-            stashClass.Grids[0] = new GClass2514(Guid.NewGuid().ToString(), 30, 1, true, Array.Empty<ItemFilter>(), stashClass);
-            TraderControllerClass traderControllerClass = new TraderControllerClass(stashClass, "here lies profile id", Guid.NewGuid().ToString(), false, EOwnerType.Profile, null, null);
+            StashItemClass stashItemClass = itemFactoryClass.CreateFakeStash(null);
+            stashItemClass.Grids[0] = new GClass2852(Guid.NewGuid().ToString(), 30, 1, true, Array.Empty<ItemFilter>(), stashItemClass);
+            TraderControllerClass traderControllerClass = new TraderControllerClass(stashItemClass, "here lies profile id", Guid.NewGuid().ToString(), false, EOwnerType.Profile);
             
             if (traderData == null)
             {
@@ -106,7 +106,11 @@ namespace ChooChooTraderModding
                 foreach (Item item in allmods)
                 {
                     item.StackObjectsCount = item.StackMaxSize;
-                    stashClass.Grid.Add(item);
+                    foreach (Item item2 in item.GetAllItems())
+                    {
+                        item2.PinLockState = EItemPinLockState.Free;
+                    }
+                    stashItemClass.Grid.AddAnywhere(item, EErrorHandlingType.Throw);
                 }
             }
             else
@@ -124,12 +128,16 @@ namespace ChooChooTraderModding
                     }
 
                     item.StackObjectsCount = item.StackMaxSize;
-                    stashClass.Grid.Add(item);
+                    foreach (Item item2 in item.GetAllItems())
+                    {
+                        item2.PinLockState = EItemPinLockState.Free;
+                    }
+                    stashItemClass.Grid.AddAnywhere(item, EErrorHandlingType.Throw);
                 }
             }
 
 
-            GClass2847 manip = new GClass2847(inventoryControllerClass, new LootItemClass[] { (LootItemClass)traderControllerClass.RootItem }, playeritems_usable_mods);
+            GClass3186 manip = new GClass3186(inventoryController, new CompoundItem[] { (CompoundItem)traderControllerClass.RootItem }, playeritems_usable_mods);
             __instance.UpdateManipulation(manip);
             __instance.RefreshWeapon();
         }
@@ -201,7 +209,7 @@ namespace ChooChooTraderModding
             }
         }
 
-        List<string> GetItems_Player(ref Item[] playeritems_usable_mods, bool showAttachedItems)
+        List<MongoID> GetItems_Player(ref Item[] playeritems_usable_mods, bool showAttachedItems)
         {
             if (showAttachedItems)
                 playeritems_usable_mods = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.AllExceptHideoutStashes).ToArray<Item>();
@@ -233,7 +241,7 @@ namespace ChooChooTraderModding
             if (weaponBody == null) { ConsoleScreen.LogError("Couldn't get items on gun, weaponBody == null"); return; }
 
             // Get all mods that are already on the gun we are modding
-            List<string> allmods_gun = weaponBody.GetAllItems().OfType<Mod>().Select(mod => mod.TemplateId).ToList();
+            List<MongoID> allmods_gun = weaponBody.GetAllItems().OfType<Mod>().Select(mod => mod.TemplateId).ToList();
             Globals.itemsOnGun = allmods_gun.ToArray();
         }
 
@@ -353,7 +361,7 @@ namespace ChooChooTraderModding
                     if (!bestCandidateIsEquipped || TraderModdingConfig.DetachEquippedItems.Value)
                     {
                         bool moveSuccess = false;
-                        GStruct414<GInterface339> moveOperationSimulation = InteractionsHandlerClass.QuickFindAppropriatePlace(bestCandidateToDetach, __instance.InventoryController, __instance.InventoryController.Inventory.Stash.ToEnumerable<StashClass>(), InteractionsHandlerClass.EMoveItemOrder.TryTransfer, true);
+                        GStruct446<GInterface385> moveOperationSimulation = InteractionsHandlerClass.QuickFindAppropriatePlace(bestCandidateToDetach, __instance.InventoryController, __instance.InventoryController.Inventory.Stash.ToEnumerable<StashItemClass>(), InteractionsHandlerClass.EMoveItemOrder.TryTransfer, true);
                         if (moveOperationSimulation.Succeeded)
                         {
                             var moveItemTask = __instance.InventoryController.TryRunNetworkTransaction(moveOperationSimulation, null);

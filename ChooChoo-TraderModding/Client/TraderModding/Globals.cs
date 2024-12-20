@@ -1,3 +1,4 @@
+using EFT;
 using EFT.InventoryLogic;
 using EFT.UI;
 using EFT.UI.DragAndDrop;
@@ -20,14 +21,14 @@ namespace ChooChooTraderModding
         public static int euros_to_rubles = 0;
 
         // Items in use etc.
-        public static string[] itemsInUse = new string[0];
+        public static MongoID[] itemsInUse = new MongoID[0];
         public static List<Item> itemsInUse_realItem = new List<Item>();
-        public static string[] itemsInUseNonBuyable = new string[0];
-        public static string[] itemsAvailable = new string[0];
-        public static string[] itemsOnGun = new string[0];
+        public static MongoID[] itemsInUseNonBuyable = new MongoID[0];
+        public static MongoID[] itemsAvailable = new MongoID[0];
+        public static MongoID[] itemsOnGun = new MongoID[0];
 
-        public static List<string> itemsToBuy = new List<string>();
-        public static List<string> itemsToDetach = new List<string>();
+        public static List<MongoID> itemsToBuy = new List<MongoID>();
+        public static List<MongoID> itemsToDetach = new List<MongoID>();
 
         // Gameobjects
         public static Toggle checkbox_availableOnly_toggle = null;

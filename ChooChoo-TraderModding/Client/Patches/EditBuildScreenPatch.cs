@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using TMPro;
+using EFT;
 
 namespace ChooChooTraderModding
 {
@@ -128,7 +129,7 @@ namespace ChooChooTraderModding
         }
 
         [PatchPostfix]
-        public static void Postfix(EditBuildScreen __instance, EditBuildScreen.GClass3151 controller)
+        public static void Postfix(EditBuildScreen __instance, EditBuildScreen.GClass3521 controller)
         {
             Globals.isOnModdingScreen = true;
 
@@ -176,10 +177,10 @@ namespace ChooChooTraderModding
         public static void Postfix(EditBuildScreen __instance)
         {
             Globals.isOnModdingScreen = false;
-            Globals.itemsOnGun = new string[0];
-            Globals.itemsInUse = new string[0];
-            Globals.itemsInUseNonBuyable = new string[0];
-            Globals.itemsAvailable = new string[0];
+            Globals.itemsOnGun = new MongoID[0];
+            Globals.itemsInUse = new MongoID[0];
+            Globals.itemsInUseNonBuyable = new MongoID[0];
+            Globals.itemsAvailable = new MongoID[0];
             Globals.traderModsTplCost.Clear();
 
             TraderModdingUtils.ClearBuyAndDetachItems();
@@ -196,8 +197,8 @@ namespace ChooChooTraderModding
     {
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.FirstMethod(typeof(GClass2849),
-                x => x.Name == nameof(GClass2849.Assemble));
+            return AccessTools.FirstMethod(typeof(GClass3188),
+                x => x.Name == nameof(GClass3188.Assemble));
         }
 
         [PatchPostfix]

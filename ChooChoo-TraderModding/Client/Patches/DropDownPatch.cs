@@ -118,7 +118,7 @@ namespace ChooChooTraderModding
         }
 
         [PatchPostfix]
-        private static void PostFix(ModdingScreenSlotView __instance, LootItemClass item)
+        private static void PostFix(ModdingScreenSlotView __instance, CompoundItem item)
         {
             Slot slot = (Slot)FieldInfos.ModdingScreenSlotView_slot_0.GetValue(__instance);
             if (slot == null || slot.ContainedItem == null)
