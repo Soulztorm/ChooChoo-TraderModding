@@ -27,7 +27,7 @@ namespace ChooChooTraderModding
         public static FieldInfo ModdingScreenSlotView_slot_0 = AccessTools.Field(typeof(ModdingScreenSlotView), "slot_0");
         public static FieldInfo ModdingScreenSlotView__moddingItemContainer = AccessTools.Field(typeof(ModdingScreenSlotView), "_moddingItemContainer");
 
-        public static FieldInfo ItemObserveScreen_weaponPreview = AccessTools.Field(typeof(ItemObserveScreen<EditBuildScreen.GClass3521, EditBuildScreen>), "_weaponPreview");
+        public static FieldInfo ItemObserveScreen_weaponPreview = AccessTools.Field(typeof(ItemObserveScreen<EditBuildScreen.GClass3591, EditBuildScreen>), "_weaponPreview");
 
 
     }

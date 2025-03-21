@@ -11,11 +11,11 @@ namespace ChooChooTraderModding
     {
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(ItemObserveScreen<EditBuildScreen.GClass3521, EditBuildScreen>), nameof(ItemObserveScreen<EditBuildScreen.GClass3521, EditBuildScreen>.Update));
+            return AccessTools.Method(typeof(ItemObserveScreen<EditBuildScreen.GClass3591, EditBuildScreen>), nameof(ItemObserveScreen<EditBuildScreen.GClass3591, EditBuildScreen>.Update));
         }
 
         [PatchPostfix]
-        public static void Postfix(ItemObserveScreen<EditBuildScreen.GClass3521, EditBuildScreen> __instance)
+        public static void Postfix(ItemObserveScreen<EditBuildScreen.GClass3591, EditBuildScreen> __instance)
         {
             if (__instance == null)
                 return;
@@ -71,7 +71,7 @@ namespace ChooChooTraderModding
     {
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(ItemObserveScreen<EditBuildScreen.GClass3521, EditBuildScreen>), nameof(ItemObserveScreen<EditBuildScreen.GClass3521, EditBuildScreen>.method_6));
+            return AccessTools.Method(typeof(ItemObserveScreen<EditBuildScreen.GClass3591, EditBuildScreen>), nameof(ItemObserveScreen<EditBuildScreen.GClass3591, EditBuildScreen>.method_6));
         }
 
         [PatchPostfix]

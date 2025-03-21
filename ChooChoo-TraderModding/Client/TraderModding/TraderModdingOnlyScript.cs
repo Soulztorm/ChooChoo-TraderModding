@@ -97,7 +97,7 @@ namespace ChooChooTraderModding
             List<MongoID> allmods_player = GetItems_Player(ref playeritems_usable_mods, TraderModdingConfig.ShowAttachedItems.Value);
 
             StashItemClass stashItemClass = itemFactoryClass.CreateFakeStash(null);
-            stashItemClass.Grids[0] = new GClass2852(Guid.NewGuid().ToString(), 30, 1, true, Array.Empty<ItemFilter>(), stashItemClass);
+            stashItemClass.Grids[0] = new GClass2919(Guid.NewGuid().ToString(), 30, 1, true, Array.Empty<ItemFilter>(), stashItemClass);
             TraderControllerClass traderControllerClass = new TraderControllerClass(stashItemClass, "here lies profile id", Guid.NewGuid().ToString(), false, EOwnerType.Profile);
             
             if (traderData == null)
@@ -137,7 +137,7 @@ namespace ChooChooTraderModding
             }
 
 
-            GClass3186 manip = new GClass3186(inventoryController, new CompoundItem[] { (CompoundItem)traderControllerClass.RootItem }, playeritems_usable_mods);
+            GClass3257 manip = new GClass3257(inventoryController, new CompoundItem[] { (CompoundItem)traderControllerClass.RootItem }, playeritems_usable_mods);
             __instance.UpdateManipulation(manip);
             __instance.RefreshWeapon();
         }
@@ -361,7 +361,7 @@ namespace ChooChooTraderModding
                     if (!bestCandidateIsEquipped || TraderModdingConfig.DetachEquippedItems.Value)
                     {
                         bool moveSuccess = false;
-                        GStruct446<GInterface385> moveOperationSimulation = InteractionsHandlerClass.QuickFindAppropriatePlace(bestCandidateToDetach, __instance.InventoryController, __instance.InventoryController.Inventory.Stash.ToEnumerable<StashItemClass>(), InteractionsHandlerClass.EMoveItemOrder.TryTransfer, true);
+                        GStruct455<GInterface398> moveOperationSimulation = InteractionsHandlerClass.QuickFindAppropriatePlace(bestCandidateToDetach, __instance.InventoryController, __instance.InventoryController.Inventory.Stash.ToEnumerable<StashItemClass>(), InteractionsHandlerClass.EMoveItemOrder.TryTransfer, true);
                         if (moveOperationSimulation.Succeeded)
                         {
                             var moveItemTask = __instance.InventoryController.TryRunNetworkTransaction(moveOperationSimulation, null);

@@ -3,8 +3,7 @@
 // Credit to wara for the original server mod to receive trader offers!!
 // =====================================================================
 //
-// Tradermodding 1.8.0 servermod - by ChooChoo
-// 1.9.0 - Update for SPT 3.10 - By Rob Neu
+// Tradermodding 1.10.0 servermod - by ChooChoo
 
 import { DependencyContainer } from "tsyringe";
 import type { IPreSptLoadMod } from "@spt/models/external/IPreSptLoadMod";

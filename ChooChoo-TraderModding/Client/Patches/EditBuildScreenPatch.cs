@@ -129,7 +129,7 @@ namespace ChooChooTraderModding
         }
 
         [PatchPostfix]
-        public static void Postfix(EditBuildScreen __instance, EditBuildScreen.GClass3521 controller)
+        public static void Postfix(EditBuildScreen __instance, EditBuildScreen.GClass3591 controller)
         {
             Globals.isOnModdingScreen = true;
 
@@ -197,8 +197,8 @@ namespace ChooChooTraderModding
     {
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.FirstMethod(typeof(GClass3188),
-                x => x.Name == nameof(GClass3188.Assemble));
+            return AccessTools.FirstMethod(typeof(GClass3259),
+                x => x.Name == nameof(GClass3259.Assemble));
         }
 
         [PatchPostfix]
