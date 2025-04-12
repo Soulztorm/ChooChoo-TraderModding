@@ -11,6 +11,8 @@ using TMPro;
 using SPT.Reflection.Utils;
 using EFT.Trading;
 using System.Collections;
+using System.Runtime.Remoting.Messaging;
+using System.Threading.Tasks;
 
 namespace ChooChooTraderModding
 {
@@ -291,84 +293,65 @@ namespace ChooChooTraderModding
             if (Globals.itemsToBuy.Count == 0)
                 return;
 
-
-
             ITraderInteractions traderInteractions = ClientAppUtils.GetMainApp().Session;
-            var traders = traderInteractions.Traders;
 
-            var stacks_roubles = __instance.InventoryController.Inventory.GetAllItemByTemplate("5449016a4bdc2d6f028b456f").ToList();
-            var stacks_dollars = __instance.InventoryController.Inventory.GetAllItemByTemplate("5696686a4bdc2da3298b456a").ToList();
-            var stacks_euros = __instance.InventoryController.Inventory.GetAllItemByTemplate("569668774bdc2da2298b4568").ToList();
-
-            Dictionary<string, List<MongoID>> map_traderModsToBuy = new Dictionary<string, List<MongoID>>();
+            Dictionary<char, string> map_currency = new Dictionary<char, string>()
+            {
+                { 'r',  "5449016a4bdc2d6f028b456f" },
+                { 'd',  "5696686a4bdc2da3298b456a" },
+                { 'e',  "569668774bdc2da2298b4568" }
+            };
 
             // Get the trader for each item
             foreach (var itemToBuyMongoID in Globals.itemsToBuy)
             {
-                string traderID = Globals.traderModInfo[itemToBuyMongoID].trader_id;
+                ModInfo modInfo = Globals.traderModInfo[itemToBuyMongoID];
                 // Skip flea items for now
-                if (traderID == "")
-                    continue;
-
-                if (map_traderModsToBuy.ContainsKey(traderID))
-                    map_traderModsToBuy[traderID].Add(itemToBuyMongoID);
-                else
-                    map_traderModsToBuy.Add(traderID, new List<MongoID>{ itemToBuyMongoID });
-            }
-
-            // Go through all the traders and buy the items
-            foreach (var trader in traders)
-            {
-                // Skip lightkeeper and fence, or unlocked/not available
-                if (trader.Id == "638f541a29ffd1183d187f57" || trader.Id == "579dc571d53a0658a154fbec" ||
-                    !trader.Info.Unlocked || !trader.Info.Available ||
-                    // Or there is nothing to buy from this trader
-                    !map_traderModsToBuy.ContainsKey(trader.Id))
+                if (modInfo.trader_id == "")
                 {
-                    NotificationManagerClass.DisplayMessageNotification("Skip " + trader.Id);
+                    NotificationManagerClass.DisplayWarningNotification("Skipping flea item: " + itemToBuyMongoID.LocalizedShortName(), EFT.Communications.ENotificationDurationType.Long);
+                    continue;
+                }
+                
+                // Check if limit reached
+                if (modInfo.limit_current >= modInfo.limit_max)
+                {
+                    NotificationManagerClass.DisplayWarningNotification(
+                        itemToBuyMongoID.LocalizedShortName() + " limit reached (" + modInfo.limit_current + "/" + modInfo.limit_max + ")",
+                        EFT.Communications.ENotificationDurationType.Long);
                     continue;
                 }
 
-                await trader.RefreshAssortment(true, true);
-                NotificationManagerClass.DisplayMessageNotification("Refreshed " + trader.LocalizedName);
+                // Get the cost of the item from the cost string
+                int cost_amount = 0;
+                try { cost_amount = Int32.Parse(modInfo.cost_string.Substring(0, modInfo.cost_string.Length - 1)); }
+                catch { continue; }
 
-                var traderItems = trader.traderAssortmentControllerClass.stashGridClass.Items;
-                foreach (var itemToBuyMongoID in map_traderModsToBuy[trader.Id])
+                // Get the money to pay with
+                var money_stacks = __instance.InventoryController.Inventory.GetAllItemByTemplate(map_currency[modInfo.cost_string.Last()]).ToList();
+                // If there is no stack of that currency, or not enough, you broke :)
+                if (money_stacks.Count == 0 || money_stacks.Sum(item => item.StackObjectsCount) < cost_amount)
                 {
-                    var traderItemsToBuy = traderItems.Where(item => item.TemplateId == itemToBuyMongoID).ToArray();
-                    foreach (Item it in traderItemsToBuy)
-                    {
-                        if (it.BuyRestrictionCurrent >= it.BuyRestrictionMax)
-                        {
-                            NotificationManagerClass.DisplayWarningNotification(
-                                it.ShortName.Localized(null) + " limit reached (" + it.BuyRestrictionCurrent + "/" + it.BuyRestrictionMax + ")",
-                                EFT.Communications.ENotificationDurationType.Long);
-                            continue;
-                        }
-                        BarterScheme barter = trader.traderAssortmentControllerClass.GetSchemeForItem(it);
-                        for (int i = 0; i < barter.Count; i++)
-                        {
-                            ConsoleScreen.Log("Barter " + i.ToString() + " for " + it.TemplateId);
-                            for (int j = 0; j < barter[i].Count; j++)
-                            {
-                                ConsoleScreen.Log("Tpl " + barter[i][j]._tpl);
-                                ConsoleScreen.Log("Cnt " + barter[i][j].IntCount);
-                            }
-                        }
-                        TradingItemReference[] refs = { new EFT.Trading.TradingItemReference { Item = stacks_roubles[0], Count = barter[0][0].IntCount } };
-                        var buyItemTask = traderInteractions.ConfirmPurchase(trader.Id, it.Id, 1, 0, refs);
-                        if (!buyItemTask.IsCompleted)               
-                            await buyItemTask;
-
-                        if (buyItemTask.Result.Succeed)
-                        {
-                            NotificationManagerClass.DisplayMessageNotification("Bought item " + it.ShortName.Localized(null));
-                            break;
-                        }
-                    }
+                    NotificationManagerClass.DisplayWarningNotification("Not enough money for: " + itemToBuyMongoID.LocalizedShortName(), EFT.Communications.ENotificationDurationType.Long);
+                    continue;
                 }
 
+                // Reference the money stacks (The backend seems to look for other stacks, so the first index is enough)
+                TradingItemReference[] refs = { new EFT.Trading.TradingItemReference { Item = money_stacks[0], Count = cost_amount } };
+
+                // Purchase from the selected trader with inventory item id, and the money references
+                var buyItemTask = traderInteractions.ConfirmPurchase(modInfo.trader_id, modInfo.trader_inventory_itemid, 1, 0, refs);
+                if (!buyItemTask.IsCompleted)
+                    await buyItemTask;
+
+                if (buyItemTask.Result.Succeed)
+                {
+                    // Count up the purchased limit, because server refresh comes later, track this offline to prevent purchasing multiple items if the stock limit is reached
+                    Globals.traderModInfo[itemToBuyMongoID].limit_current++;
+                    NotificationManagerClass.DisplayMessageNotification("Bought " + itemToBuyMongoID.LocalizedShortName());
+                }
             }
+
 
             TraderModdingUtils.ClearBuyAndDetachItems();
 
@@ -376,7 +359,7 @@ namespace ChooChooTraderModding
             __instance.CreateBuildManipulation();
 
             // Overwrite the above manipulation with our own again, and update item states, at least dont get trader data again
-            RefreshEverything(false);
+            RefreshEverything(true);
         }
 
         public async void TryToDetachInUseItems()
