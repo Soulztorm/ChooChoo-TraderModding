@@ -55,9 +55,10 @@ namespace ChooChooTraderModding
 
             if (caption != null && modTypeIcon != null)
             {
-                string costText;
-                if (Globals.traderModsTplCost.TryGetValue(item.TemplateId, out costText))
+                if (Globals.traderModInfo.ContainsKey(item.TemplateId))
                 {
+                    string costText = Globals.traderModInfo[item.TemplateId].cost_string;
+
                     if (TraderModdingConfig.AbbreviatePrices.Value)
                         TransformPriceTextToAbbreviated(ref costText);
 
@@ -207,18 +208,18 @@ namespace ChooChooTraderModding
 
             foreach (var itemToBuy in Globals.itemsToBuy)
             {
-                string itemCost = "";
-                if (!Globals.traderModsTplCost.TryGetValue(itemToBuy, out itemCost))
+                if (!Globals.traderModInfo.ContainsKey(itemToBuy))
                     continue;
 
+                string costString = Globals.traderModInfo[itemToBuy].cost_string;
                 int amount = 0;
                 try
                 {
-                    amount = Int32.Parse(itemCost.Substring(0, itemCost.Length - 1));
+                    amount = Int32.Parse(costString.Substring(0, costString.Length - 1));
                 }
                 catch { continue; }
 
-                char currency = itemCost.Last<char>();
+                char currency = costString.Last<char>();
                 if (currency == 'r')
                     amount_rubles += amount;
                 else if (currency == 'd')
@@ -272,19 +273,5 @@ namespace ChooChooTraderModding
             if (Globals.detachButtonCanvasGroup != null)
                 Globals.detachButtonCanvasGroup.alpha = 0.5f;
         }
-    }
-
-
-	public class ModAndCost
-	{
-		public string tpl;
-		public string cost;
-	}
-
-    public class TraderData
-    {
-        public int dollar_to_ruble;
-        public int euro_to_ruble;
-        public ModAndCost[] modsAndCosts;
     }
 }

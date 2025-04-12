@@ -8,6 +8,30 @@ using UnityEngine.UI;
 
 namespace ChooChooTraderModding
 {
+    internal class ModInfoData
+    {
+        public string tpl;
+        public string cost;
+        public int tidx;
+        public string id;
+        public int lp;
+        public int lm;
+    }
+    internal class TraderData
+    {
+        public int dollar_to_ruble;
+        public int euro_to_ruble;
+        public string[] traderIDs;
+        public ModInfoData[] modInfoData;
+    }
+    internal class ModInfo
+    {
+        public string trader_inventory_itemid;
+        public string trader_id;
+        public string cost_string;
+        public int limit_current;
+        public int limit_max;
+    }
     internal static class Globals
     {
         public static bool isOnModdingScreen = false;
@@ -16,7 +40,7 @@ namespace ChooChooTraderModding
         public static TraderModdingOnlyScript script = null;
 
         // Trader data
-        public static Dictionary<string, string> traderModsTplCost = new Dictionary<string, string>();
+        public static Dictionary<string, ModInfo> traderModInfo = new Dictionary<string, ModInfo>();
         public static int dollars_to_rubles = 0;
         public static int euros_to_rubles = 0;
 

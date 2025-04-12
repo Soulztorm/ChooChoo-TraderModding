@@ -98,7 +98,8 @@ namespace ChooChooTraderModding
             ButtonWithHint buttonWithHint = detachItemsButton.GetComponent<ButtonWithHint>();
             Button button = (Button)FieldInfos.ButtonWithHint__button.GetValue(buttonWithHint);
             button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(new UnityAction(Globals.script.TryToDetachInUseItems));
+            //button.onClick.AddListener(new UnityAction(Globals.script.TryToDetachInUseItems));
+            button.onClick.AddListener(new UnityAction(Globals.script.TryToBuyItems));
             
             Image background = button.gameObject.GetComponent<Image>();
             background.color = Color.yellow;
@@ -181,7 +182,7 @@ namespace ChooChooTraderModding
             Globals.itemsInUse = new MongoID[0];
             Globals.itemsInUseNonBuyable = new MongoID[0];
             Globals.itemsAvailable = new MongoID[0];
-            Globals.traderModsTplCost.Clear();
+            Globals.traderModInfo.Clear();
 
             TraderModdingUtils.ClearBuyAndDetachItems();
 

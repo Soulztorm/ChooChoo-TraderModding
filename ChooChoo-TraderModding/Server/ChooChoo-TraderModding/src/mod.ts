@@ -63,23 +63,29 @@ class ChooChooTraderModding implements IPreSptLoadMod {
 
         const pmcData = profileHelper.getPmcProfile(sessionId);
 
-        type ModAndCost = {
+        type ModInfoData = {
             tpl: string;
             cost: string;
+            tidx: number;
+            id: string;
+            lp: number;
+            lm: number;
         }
         type TraderData = {
             dollar_to_ruble: number;
             euro_to_ruble: number;
-            modsAndCosts: ModAndCost[];
+            traderIDs: string[];
+            modInfoData: ModInfoData[];
         }
-        const allTraderData: TraderData = {dollar_to_ruble: 146, euro_to_ruble: 159, modsAndCosts: []};
+        const allTraderData: TraderData = {dollar_to_ruble: 146, euro_to_ruble: 159, traderIDs: [], modInfoData: []};
 
+        let traderIDX = -1;
         const allTraderIds = Object.keys(Traders);   
         allTraderIds.forEach(traderkey => {
             const trader = Traders[traderkey];
 
             // Skip fence, btr and lighthouse keeper
-            if (traderkey == "FENCE" ||traderkey == "BTR" || traderkey == "LIGHTHOUSEKEEPER")
+            if (traderkey == "FENCE" || traderkey == "BTR" || traderkey == "LIGHTHOUSEKEEPER")
                 return;
 
             // Check if the trader is currently locked
@@ -94,6 +100,10 @@ class ChooChooTraderModding implements IPreSptLoadMod {
             if (traderAssort == undefined || traderAssort.items == undefined)
                 return;
 
+            // Trader is valid, add to trader dictionary
+            allTraderData.traderIDs.push(trader);
+            traderIDX++;
+
             for (const item of traderAssort.items) {
                 let addedByUnlimitedCount = false;
 
@@ -103,17 +113,26 @@ class ChooChooTraderModding implements IPreSptLoadMod {
                         const barterOffer = traderAssort.barter_scheme[item._id][0][0];
                         if (!this.isBarterOffer(barterOffer, money)) {
                             if (item.upd !== undefined) { 
-                                const mac: ModAndCost  = { "tpl": item._tpl, "cost": this.getCostString(barterOffer, money, money_symbols)};
+
+                                const mac: ModInfoData  = { 
+                                    "tpl": item._tpl, 
+                                    "cost": this.getCostString(barterOffer, money, money_symbols), 
+                                    "tidx": traderIDX,
+                                    "id": item._id,
+                                    "lp": item.upd.BuyRestrictionCurrent,
+                                    "lm": item.upd.BuyRestrictionMax,
+                                };
+
                                 if (item.upd.UnlimitedCount !== undefined) {
                                     // probably unnecessary but to be safe.
                                     if (item.upd.UnlimitedCount == true) {
-                                        allTraderData.modsAndCosts.push(mac);
+                                        allTraderData.modInfoData.push(mac);
                                         addedByUnlimitedCount = true;
                                     }
                                 }
                                 if (item.upd.StackObjectsCount !== undefined && !addedByUnlimitedCount) {
                                     if (item.upd.StackObjectsCount > 0) {
-                                        allTraderData.modsAndCosts.push(mac);
+                                        allTraderData.modInfoData.push(mac);
                                     }
                                 }
                             }
@@ -156,7 +175,7 @@ class ChooChooTraderModding implements IPreSptLoadMod {
                     !ragfairServerHelper.isItemValidRagfairItem([itemHelper.isValidItem(tplId), templates[tplId]]))
                     continue;
 
-                const containsItem = allTraderData.modsAndCosts.some((itemToCheck) => itemToCheck.tpl === tplId);
+                const containsItem = allTraderData.modInfoData.some((itemToCheck) => itemToCheck.tpl === tplId);
                 if (containsItem)
                     continue;
 
@@ -174,9 +193,15 @@ class ChooChooTraderModding implements IPreSptLoadMod {
                 // Adjust to minimum price range
                 dynamicPrice *= priceRange.min;
 
-                const mac: ModAndCost  = { "tpl": tplId, "cost": "0" + Math.ceil(dynamicPrice).toString() + "r"};
-                allTraderData.modsAndCosts.push(mac);
-                //console.log("Added flea item: " + item._id + " / " + dynamicPrice.toString());
+                const mac: ModInfoData  = { 
+                    "tpl": tplId, 
+                    "cost": "0" + Math.ceil(dynamicPrice).toString() + "r", 
+                    "tidx": -1,
+                    "id": "",
+                    "lp": -1,
+                    "lm": -1
+                };
+                allTraderData.modInfoData.push(mac);
             }
         }        
 

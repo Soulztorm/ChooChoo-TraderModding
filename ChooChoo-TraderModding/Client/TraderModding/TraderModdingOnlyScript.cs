@@ -8,6 +8,9 @@ using EFT.InventoryLogic;
 using UnityEngine;
 using ChooChooTraderModding.Config;
 using TMPro;
+using SPT.Reflection.Utils;
+using EFT.Trading;
+using System.Collections;
 
 namespace ChooChooTraderModding
 {
@@ -119,7 +122,7 @@ namespace ChooChooTraderModding
                 {
                     if (Globals.checkbox_traderOnly_toggle.isOn)
                     {
-                        bool traderHasMod = traderData.modsAndCosts.Any(mod => mod.tpl == item.TemplateId && mod.cost[0] != '0');
+                        bool traderHasMod = traderData.modInfoData.Any(mod => mod.tpl == item.TemplateId && mod.cost[0] != '0');
                         if (!(
                             (TraderModdingConfig.InvertTraderSelection.Value ? !traderHasMod : traderHasMod) ||
                             Globals.itemsOnGun.Contains(item.TemplateId) ||
@@ -152,30 +155,23 @@ namespace ChooChooTraderModding
             // I figured for estimating their price, somehow this is 132, no idea about euros, since there are so little items.
             const int bsg_dollars_to_rubles = 132;
 
-            Globals.traderModsTplCost.Clear();
-            foreach (ModAndCost mod in traderData.modsAndCosts)
-            {
+            Globals.traderModInfo.Clear();
 
-                //Globals.traderModsTplCost[mod.tpl] = mod.cost;
+            foreach (ModInfoData mod in traderData.modInfoData)
+            {    
+                ModInfo modData = new ModInfo();
+                modData.trader_inventory_itemid = mod.id;
+                modData.trader_id = mod.tidx < 0 ? "" : traderData.traderIDs[mod.tidx];
+                modData.cost_string = mod.cost;
+                modData.limit_current = mod.lp;
+                modData.limit_max = mod.lm;
 
-
-                // I converted to the lowest price before to show these,
-                // but when assembling the gun, and searching for the mods ->
-                // BSG just shows you the last found entry apparently, might be more expensive,
-                // so we will show these as well instead of the cheapest....
-
-
-                try
+                if (!Globals.traderModInfo.ContainsKey(mod.tpl))
+                    Globals.traderModInfo.Add(mod.tpl, modData);
+                else
                 {
-                    Globals.traderModsTplCost.Add(mod.tpl, mod.cost);
-                }
-                // Price already in list, check if lower after conversion
-                catch (ArgumentException e)
-                {
-                    // Globals.traderModsTplCost[mod.tpl] = mod.cost;
-
-                    // Convert the existring cost to rubles
-                    string existingCostString = Globals.traderModsTplCost[mod.tpl];
+                    // Convert the existing cost to rubles
+                    string existingCostString = Globals.traderModInfo[mod.tpl].cost_string;
                     int existingCostAmount = 0;
                     try { existingCostAmount = Int32.Parse(existingCostString.Substring(0, existingCostString.Length - 1)); } catch { continue; }
 
@@ -203,8 +199,8 @@ namespace ChooChooTraderModding
                         newCostRubles = newCostAmount * traderData.euro_to_ruble;
 
 
-                    if (newCostRubles < existingCostRubles)
-                        Globals.traderModsTplCost[mod.tpl] = mod.cost;
+                    if (newCostRubles < existingCostRubles)         
+                        Globals.traderModInfo[mod.tpl] = modData;
                 }
             }
         }
@@ -222,18 +218,17 @@ namespace ChooChooTraderModding
         public void GetItemsInUse()
         {
             var allPlayerItems = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.AllExceptHideoutStashes);
-            var looseItemsPlayer = allPlayerItems.Where(IsItemUsable).Select(mod => mod.TemplateId).ToList();
+            Globals.itemsAvailable = allPlayerItems.Where(IsItemUsable).Select(mod => mod.TemplateId).ToArray();
 
             Globals.itemsInUse_realItem = allPlayerItems.
-                Where(item => !looseItemsPlayer.Contains(item.TemplateId)).ToList();
+                Where(item => !Globals.itemsAvailable.Contains(item.TemplateId)).ToList();
 
             Globals.itemsInUse = Globals.itemsInUse_realItem.Select(mod => mod.TemplateId).ToArray();
-            Globals.itemsAvailable = looseItemsPlayer.ToArray();
         }
 
         public void GetItemsInUseNotPurchasable()
         {
-            Globals.itemsInUseNonBuyable = Globals.itemsInUse.Where(item => !traderData.modsAndCosts.Any(mod => mod.tpl == item)).ToArray();
+            Globals.itemsInUseNonBuyable = Globals.itemsInUse.Where(item => !traderData.modInfoData.Any(mod => mod.tpl == item)).ToArray();
         }
 
         public void GetItemsOnGun()
@@ -241,8 +236,7 @@ namespace ChooChooTraderModding
             if (weaponBody == null) { ConsoleScreen.LogError("Couldn't get items on gun, weaponBody == null"); return; }
 
             // Get all mods that are already on the gun we are modding
-            List<MongoID> allmods_gun = weaponBody.GetAllItems().OfType<Mod>().Select(mod => mod.TemplateId).ToList();
-            Globals.itemsOnGun = allmods_gun.ToArray();
+            Globals.itemsOnGun = weaponBody.GetAllItems().OfType<Mod>().Select(mod => mod.TemplateId).ToArray();
         }
 
         public void UpdateBuildCostPanel()
@@ -290,6 +284,99 @@ namespace ChooChooTraderModding
             }
 
             UpdateBuildCostPanel();
+        }
+
+        public async void TryToBuyItems()
+        {
+            if (Globals.itemsToBuy.Count == 0)
+                return;
+
+
+
+            ITraderInteractions traderInteractions = ClientAppUtils.GetMainApp().Session;
+            var traders = traderInteractions.Traders;
+
+            var stacks_roubles = __instance.InventoryController.Inventory.GetAllItemByTemplate("5449016a4bdc2d6f028b456f").ToList();
+            var stacks_dollars = __instance.InventoryController.Inventory.GetAllItemByTemplate("5696686a4bdc2da3298b456a").ToList();
+            var stacks_euros = __instance.InventoryController.Inventory.GetAllItemByTemplate("569668774bdc2da2298b4568").ToList();
+
+            Dictionary<string, List<MongoID>> map_traderModsToBuy = new Dictionary<string, List<MongoID>>();
+
+            // Get the trader for each item
+            foreach (var itemToBuyMongoID in Globals.itemsToBuy)
+            {
+                string traderID = Globals.traderModInfo[itemToBuyMongoID].trader_id;
+                // Skip flea items for now
+                if (traderID == "")
+                    continue;
+
+                if (map_traderModsToBuy.ContainsKey(traderID))
+                    map_traderModsToBuy[traderID].Add(itemToBuyMongoID);
+                else
+                    map_traderModsToBuy.Add(traderID, new List<MongoID>{ itemToBuyMongoID });
+            }
+
+            // Go through all the traders and buy the items
+            foreach (var trader in traders)
+            {
+                // Skip lightkeeper and fence, or unlocked/not available
+                if (trader.Id == "638f541a29ffd1183d187f57" || trader.Id == "579dc571d53a0658a154fbec" ||
+                    !trader.Info.Unlocked || !trader.Info.Available ||
+                    // Or there is nothing to buy from this trader
+                    !map_traderModsToBuy.ContainsKey(trader.Id))
+                {
+                    NotificationManagerClass.DisplayMessageNotification("Skip " + trader.Id);
+                    continue;
+                }
+
+                await trader.RefreshAssortment(true, true);
+                NotificationManagerClass.DisplayMessageNotification("Refreshed " + trader.LocalizedName);
+
+                var traderItems = trader.traderAssortmentControllerClass.stashGridClass.Items;
+                foreach (var itemToBuyMongoID in map_traderModsToBuy[trader.Id])
+                {
+                    var traderItemsToBuy = traderItems.Where(item => item.TemplateId == itemToBuyMongoID).ToArray();
+                    foreach (Item it in traderItemsToBuy)
+                    {
+                        if (it.BuyRestrictionCurrent >= it.BuyRestrictionMax)
+                        {
+                            NotificationManagerClass.DisplayWarningNotification(
+                                it.ShortName.Localized(null) + " limit reached (" + it.BuyRestrictionCurrent + "/" + it.BuyRestrictionMax + ")",
+                                EFT.Communications.ENotificationDurationType.Long);
+                            continue;
+                        }
+                        BarterScheme barter = trader.traderAssortmentControllerClass.GetSchemeForItem(it);
+                        for (int i = 0; i < barter.Count; i++)
+                        {
+                            ConsoleScreen.Log("Barter " + i.ToString() + " for " + it.TemplateId);
+                            for (int j = 0; j < barter[i].Count; j++)
+                            {
+                                ConsoleScreen.Log("Tpl " + barter[i][j]._tpl);
+                                ConsoleScreen.Log("Cnt " + barter[i][j].IntCount);
+                            }
+                        }
+                        TradingItemReference[] refs = { new EFT.Trading.TradingItemReference { Item = stacks_roubles[0], Count = barter[0][0].IntCount } };
+                        var buyItemTask = traderInteractions.ConfirmPurchase(trader.Id, it.Id, 1, 0, refs);
+                        if (!buyItemTask.IsCompleted)               
+                            await buyItemTask;
+
+                        if (buyItemTask.Result.Succeed)
+                        {
+                            NotificationManagerClass.DisplayMessageNotification("Bought item " + it.ShortName.Localized(null));
+                            break;
+                        }
+                    }
+                }
+
+            }
+
+            TraderModdingUtils.ClearBuyAndDetachItems();
+
+            // Don't know why I can't make the Assemble button see the changes in inventory without doing this...
+            __instance.CreateBuildManipulation();
+
+            // Overwrite the above manipulation with our own again, and update item states, at least dont get trader data again
+            RefreshEverything(false);
         }
 
         public async void TryToDetachInUseItems()
