@@ -1,0 +1,29 @@
+﻿using BepInEx;
+using TraderModding.Config;
+
+namespace TraderModding
+{
+	[BepInPlugin("com.choochoo.tradermodding", "Choo² Trader Modding", "2.0.0")]
+	public class TraderModdingPlugin : BaseUnityPlugin
+	{
+		private void Awake()
+		{
+			TraderModdingConfig.InitConfig(Config);
+
+            new EditBuildScreenPatch().Enable();
+			new EditBuildScreenShowPatch().Enable();
+			new EditBuildScreenClosePatch().Enable();
+			new EditBuildScreenAssembledWeaponPatch().Enable();
+			new DropDownPatch().Enable();
+			new DropDownPatchDeleteOverlays().Enable();
+			new ModdingScreenSlotViewPatch().Enable();
+			new WeaponUpdatePatch().Enable();
+
+			// After spawning all icons, refresh build cost
+			new ItemObserveScreenRefreshIconsPatch().Enable();
+
+			// Zoom in / out
+			new ItemObserveScreenPatch().Enable();   
+        }
+	}
+}
