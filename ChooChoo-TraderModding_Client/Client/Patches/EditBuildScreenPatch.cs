@@ -36,7 +36,7 @@ namespace TraderModding
             onlyTradersCheckbox.transform.SetParent(Globals.checkbox_availableOnly_toggle.transform.parent, false);
 
             // Attach script to the checkbox
-            TraderModdingOnlyScript script = onlyTradersCheckbox.AddComponent<TraderModdingOnlyScript>();
+            TraderModdingScript script = onlyTradersCheckbox.AddComponent<TraderModdingScript>();
             script.__instance = __instance;
             // Reference to script
             Globals.script = script;
@@ -249,6 +249,8 @@ namespace TraderModding
 
                 if (assembled)
                 {
+                    TraderModdingUtils.ClearBuyAndDetachItems();
+                    
                     Globals.script.GetItemsOnGun();
                     Globals.script.GetItemsInUse();
                     Globals.script.GetItemsInUseNotPurchasable();

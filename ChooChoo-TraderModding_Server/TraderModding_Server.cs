@@ -148,28 +148,22 @@ public class TraderModdingRouter : StaticRouter
                 var barterOffer = barters[0][0];
                 // Skip non money barters
                 if (!_money.ContainsKey(barterOffer.Template)) continue;
-                if (item.Upd == null) continue;
                 
-                ModInfoData mac = new ModInfoData()
+                if (item.Upd == null) continue;
+                if ((item.Upd.UnlimitedCount.HasValue && item.Upd.UnlimitedCount.Value) ||      // Unlimited stock
+                    (item.Upd.BuyRestrictionMax.GetValueOrDefault() != 0 && item.Upd.StackObjectsCount is > 0))    // Limited stack and still stock
                 {
-                    tpl = item.Template,
-                    cost = getCostString(barterOffer),
-                    tidx = traderIDX,
-                    id = item.Id,
-                    lp = item.Upd.BuyRestrictionCurrent.GetValueOrDefault(),
-                    lm = item.Upd.BuyRestrictionMax.GetValueOrDefault()
-                };
-
-                // Unlimited stock
-                if (item.Upd.UnlimitedCount.HasValue && item.Upd.UnlimitedCount.Value)
-                {
+                    ModInfoData mac = new ModInfoData()
+                    {
+                        tpl = item.Template,
+                        cost = getCostString(barterOffer),
+                        tidx = traderIDX,
+                        id = item.Id,
+                        lp = item.Upd.BuyRestrictionCurrent.GetValueOrDefault(),
+                        lm = item.Upd.BuyRestrictionMax.GetValueOrDefault()
+                    };
+                    
                     allTraderData.modInfoData.Add(mac);
-                }
-                // Check if stock bigger than 0
-                else if (item.Upd.StackObjectsCount.HasValue) {
-                    if (item.Upd.StackObjectsCount > 0) {
-                        allTraderData.modInfoData.Add(mac);
-                    }
                 }
 
                 // Track added items for later flea query
@@ -181,14 +175,13 @@ public class TraderModdingRouter : StaticRouter
         
         if (flea){
             RagfairConfig ragfairConfig = configServer.GetConfig<RagfairConfig>();
-
             var priceRange = ragfairConfig.Dynamic.PriceRanges.Default;
-            var unreasonableModPrices = ragfairConfig.Dynamic.UnreasonableModPrices["5448fe124bdc2da5018b4567"];
+            var unreasonableModPrices = ragfairConfig.Dynamic.UnreasonableModPrices[BaseClasses.MOD];
+            var offerAdjustment = ragfairConfig.Dynamic.OfferAdjustment.MaxPriceDifferenceBelowHandbookPercent * 0.01;
             var priceOverMult = unreasonableModPrices.HandbookPriceOverMultiplier;
             var priceAdjustedMult = unreasonableModPrices.NewPriceHandbookMultiplier;
-            
             var templates = databaseService.GetItems();
-
+            
             foreach (var titem in templates.Values)
             {
                 MongoId tplId = titem.Id;
@@ -198,27 +191,25 @@ public class TraderModdingRouter : StaticRouter
                 if (!itemHelper.IsOfBaseclass(tplId, BaseClasses.MOD) || 
                     !ragfairServerHelper.IsItemValidRagfairItem(new KeyValuePair<bool, TemplateItem?>(itemHelper.IsValidItem(tplId), titem)))
                     continue;
-
+                
                 // The price adjustment code below is fucked...
                 // I tried to replicate the logic from the server, doesn't add up.
-                var fleaPrice = ragfairPriceService.GetFleaPriceForItem(tplId);
-            
+                var price = ragfairPriceService.GetFleaPriceForItem(tplId);
                 double? handbookPrice = ragfairPriceService.GetStaticPriceForItem(tplId);
                 if (handbookPrice.HasValue && handbookPrice > 1.0)
                 {
-                    if (fleaPrice > priceOverMult * handbookPrice)
+                    if (price > priceOverMult * handbookPrice.Value)
                     {
-                        fleaPrice = priceAdjustedMult * handbookPrice.Value;
+                        price = priceAdjustedMult * handbookPrice.Value;
                     }
                 }
-                
-                // Adjust to minimum price range
-                fleaPrice *= priceRange.Min;
+
+                price *= priceRange.Min * offerAdjustment;
 
                 ModInfoData mac = new ModInfoData()
                 {
                     tpl = tplId,
-                    cost = "0" + ((int)Math.Ceiling(fleaPrice)) + "r", 
+                    cost = "0" + ((int)Math.Ceiling(price)) + "r", 
                     tidx = -1,
                     id = "",
                     lp = -1,

@@ -56,9 +56,12 @@ namespace TraderModding
 
             if (caption != null && modTypeIcon != null)
             {
-                if (Globals.traderModInfo.ContainsKey(item.TemplateId))
+                // Nudge the icon a bit 
+                modTypeIcon.transform.localPosition = new Vector3(-8, -8, 0);
+                
+                if (Globals.traderModInfo.TryGetValue(item.TemplateId, out var modInfo))
                 {
-                    string costText = Globals.traderModInfo[item.TemplateId].cost_string;
+                    string costText = modInfo.cost_string;
 
                     if (TraderModdingConfig.AbbreviatePrices.Value)
                         TransformPriceTextToAbbreviated(ref costText);
@@ -72,9 +75,8 @@ namespace TraderModding
                     // Add a black background
                     Image colorPanel = (Image)FieldInfos.ItemView_ColorPanel.GetValue(modItemView);
 
-                    GameObject itemPriceTagBackground = GameObject.Instantiate(colorPanel.gameObject);
+                    GameObject itemPriceTagBackground = GameObject.Instantiate(colorPanel.gameObject, modTypeIcon.transform, false);
                     itemPriceTagBackground.name = "ItemPriceTagBG2";
-                    itemPriceTagBackground.transform.SetParent(modTypeIcon.transform, false);
                     RectTransform bgRect = itemPriceTagBackground.GetComponent<RectTransform>();
                     bgRect.anchoredPosition = Vector2.zero;
                     bgRect.anchorMax = new Vector2(4.5f, 1f);
@@ -112,9 +114,12 @@ namespace TraderModding
 
 
                     // Disable the not in eq icon
-                    GameObject NotInEquipmentIcon = (GameObject)FieldInfos.ModdingSelectableItemView_NotInEquipmentIcon.GetValue(modItemView);
-                    if (NotInEquipmentIcon != null)
-                        NotInEquipmentIcon.SetActive(false);
+                    GameObject notAvailableIconGO = (GameObject)FieldInfos.ModdingSelectableItemView_NotAvailableIcon.GetValue(modItemView);
+                    if (notAvailableIconGO != null)
+                        notAvailableIconGO.SetActive(false);
+                    GameObject availableIconGO = (GameObject)FieldInfos.ModdingSelectableItemView_AvailableFromMerchantsIcon.GetValue(modItemView);
+                    if (availableIconGO != null)
+                        availableIconGO.SetActive(false);
                 }
             }
         }
@@ -195,6 +200,11 @@ namespace TraderModding
                 priceText = priceTextNoCurrency + dollar_colorstring;
             else if (currency == 'e')
                 priceText = priceTextNoCurrency + euro_colorstring;
+        }
+
+        public static string ColorText(string text, string hexcode)
+        {
+            return "<color=#" + hexcode + ">" + text + "</color>";
         }
 
         public static void UpdateBuildCost()

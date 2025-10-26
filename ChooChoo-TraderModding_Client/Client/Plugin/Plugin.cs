@@ -3,7 +3,7 @@ using TraderModding.Config;
 
 namespace TraderModding
 {
-	[BepInPlugin("com.choochoo.tradermodding", "Choo² Trader Modding", "1.11.0")]
+	[BepInPlugin("com.choochoo.tradermodding", "Choo² Trader Modding", "2.0.0")]
 	public class TraderModdingPlugin : BaseUnityPlugin
 	{
 		private void Awake()

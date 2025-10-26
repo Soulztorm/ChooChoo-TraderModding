@@ -16,7 +16,7 @@ using TraderModding.Config;
 
 namespace TraderModding
 {
-    public class TraderModdingOnlyScript : MonoBehaviour
+    public class TraderModdingScript : MonoBehaviour
     {
         public EditBuildScreen __instance;
         public ISession __session;
@@ -297,7 +297,7 @@ namespace TraderModding
 
             ITraderInteractions traderInteractions = ClientAppUtils.GetMainApp().Session;
 
-            Dictionary<char, string> map_currency = new Dictionary<char, string>()
+            Dictionary<char, MongoID> map_currency = new Dictionary<char, MongoID>()
             {
                 { 'r',  "5449016a4bdc2d6f028b456f" },
                 { 'd',  "5696686a4bdc2da3298b456a" },
@@ -350,7 +350,9 @@ namespace TraderModding
                 {
                     // Count up the purchased limit, because server refresh comes later, track this offline to prevent purchasing multiple items if the stock limit is reached
                     Globals.traderModInfo[itemToBuyMongoID].limit_current++;
-                    NotificationManagerClass.DisplayMessageNotification("Bought " + itemToBuyMongoID.LocalizedShortName());
+                    string costText = modInfo.cost_string;
+                    TraderModdingUtils.TransformPriceTextToColored(ref costText);
+                    NotificationManagerClass.DisplayMessageNotification("Bought " + itemToBuyMongoID.LocalizedShortName() + " for " + costText, EFT.Communications.ENotificationDurationType.Long);
                 }
             }
 
@@ -375,6 +377,7 @@ namespace TraderModding
                 List<Item> listEquipped = new List<Item>();
                 List<Item> listOnWeapons = new List<Item>();
                 List<Item> listOnAnything = new List<Item>();
+                Dictionary<MongoID, string> parentWeaponDict  = new Dictionary<MongoID, string>();
 
                 // Find all possible items that we could detach for the given template id
                 var allDetachPossibilities = Globals.itemsInUse_realItem.Where(item => item.TemplateId == tplID).ToList();
@@ -383,6 +386,8 @@ namespace TraderModding
                     // Go through the parent hierarchy to find out if it is equipped, attached to weapons, or to something else
                     var parents = item.GetAllParentItems(true);
                     bool addedAsEquippedOrWeapon = false;
+                    string weaponName = "";
+                    
                     foreach (var parent in parents)
                     {
                         if (parent is Weapon)
@@ -396,6 +401,7 @@ namespace TraderModding
                                 listOnWeapons.Add(item);
                             }
                             addedAsEquippedOrWeapon = true;
+                            weaponName = parent.ShortName.Localized();
                             break;
                         }
                     }
@@ -403,6 +409,9 @@ namespace TraderModding
                     {
                         listOnAnything.Add(item);
                     }
+
+                    // Track if / which weapon is the top level parent
+                    parentWeaponDict[item.Id] = weaponName;
                 }
 
                 Item bestCandidateToDetach = null;
@@ -427,10 +436,12 @@ namespace TraderModding
              
                 if (bestCandidateToDetach != null)
                 {
-                    string parentName = bestCandidateToDetach.Parent.Container.ParentItem.ShortName.Localized(null);
-
+                    string moveItemName = bestCandidateToDetach.ShortName.Localized();
+                    string parentName = bestCandidateToDetach.Parent.Container.ParentItem.ShortName.Localized();
+                    
                     if (!bestCandidateIsEquipped || TraderModdingConfig.DetachEquippedItems.Value)
                     {
+                        // Try to move the item to stash
                         bool moveSuccess = false;
                         GStruct154<GInterface424> moveOperationSimulation = InteractionsHandlerClass.QuickFindAppropriatePlace(bestCandidateToDetach, __instance.InventoryController, __instance.InventoryController.Inventory.Stash.ToEnumerable<StashItemClass>(), InteractionsHandlerClass.EMoveItemOrder.TryTransfer, true);
                         if (moveOperationSimulation.Succeeded)
@@ -442,21 +453,25 @@ namespace TraderModding
                             }
                             moveSuccess = moveItemTask.Result.Succeed;
                         }
+                        
+                        // Modify the parent string to indicate if the toplevel parent was a weapon
+                        string weaponString = parentWeaponDict[bestCandidateToDetach.Id];
+                        if (!weaponString.IsNullOrEmpty())
+                        {
+                            if (parentName != weaponString)
+                                parentName += " (" + weaponString + ")";
+                        }
 
-                        // Try to move the item to stash
-                        //if (InteractionsHandlerClass.QuickFindAppropriatePlace(bestCandidateToDetach, __instance.InventoryController, __instance.InventoryController.Inventory.Stash.ToEnumerable<StashClass>(), InteractionsHandlerClass.EMoveItemOrder.TryTransfer, false).Succeeded)
+                        string detachText = TraderModdingUtils.ColorText(moveItemName, "c4bc89") + " from " +
+                                            TraderModdingUtils.ColorText(parentName, "c4bc89");
                         if (moveSuccess)
-                        {
-                            NotificationManagerClass.DisplayMessageNotification("Detached " + bestCandidateToDetach.ShortName.Localized(null) + " from " + parentName);
-                        }
+                            NotificationManagerClass.DisplayMessageNotification("Detached " + detachText);
                         else
-                        {
-                            NotificationManagerClass.DisplayWarningNotification("Detaching of " + bestCandidateToDetach.ShortName.Localized(null) + " from " + parentName + " failed!");
-                        }
+                            NotificationManagerClass.DisplayWarningNotification("Detaching of " + detachText + " failed!");
                     }
                     else
                     {
-                        NotificationManagerClass.DisplayWarningNotification("Did not detach " + bestCandidateToDetach.ShortName.Localized(null) + ", because it is equipped!");
+                        NotificationManagerClass.DisplayWarningNotification("Did not detach " + moveItemName + ", because it is equipped!");
                     }
                 }
                 else

@@ -37,7 +37,7 @@ namespace TraderModding
         public static bool isOnModdingScreen = false;
 
         // The main script
-        public static TraderModdingOnlyScript script = null;
+        public static TraderModdingScript script = null;
 
         // Trader data
         public static Dictionary<string, ModInfo> traderModInfo = new Dictionary<string, ModInfo>();

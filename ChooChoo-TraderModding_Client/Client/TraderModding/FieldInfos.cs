@@ -22,7 +22,8 @@ namespace TraderModding
         public static FieldInfo ItemView_Border = AccessTools.Field(typeof(ItemView), "_border");
         public static FieldInfo GridItemView_Caption = AccessTools.Field(typeof(GridItemView), "Caption");
         public static FieldInfo ItemViewStats_modTypeIcon = AccessTools.Field(typeof(ItemViewStats), "_modTypeIcon");
-        public static FieldInfo ModdingSelectableItemView_NotInEquipmentIcon = AccessTools.Field(typeof(ModdingSelectableItemView), "_availableFromMerchants");
+        public static FieldInfo ModdingSelectableItemView_AvailableFromMerchantsIcon = AccessTools.Field(typeof(ModdingSelectableItemView), "_availableFromMerchants");
+        public static FieldInfo ModdingSelectableItemView_NotAvailableIcon = AccessTools.Field(typeof(ModdingSelectableItemView), "_notAvailable");
         public static FieldInfo ModdingScreenSlotView_slot_0 = AccessTools.Field(typeof(ModdingScreenSlotView), "slot_0");
         public static FieldInfo ModdingScreenSlotView__moddingItemContainer = AccessTools.Field(typeof(ModdingScreenSlotView), "_moddingItemContainer");
 

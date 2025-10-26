@@ -5,28 +5,27 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
-    <Version>1.11.0</Version>
+    <Version>2.0.0</Version>
     <!-- The two lines below will set the output path for the binaries -->
     <OutputPath>bin\$(Configuration)\$(ProjectName)\$(AssemblyName)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <AssemblyVersion>1.11.0</AssemblyVersion>
-    <FileVersion>1.11.0</FileVersion>
+    <AssemblyVersion>2.0.0</AssemblyVersion>
+    <FileVersion>2.0.0</FileVersion>
     <AssemblyName>ChooChoo-TraderModding</AssemblyName>
+    <Company>Choo²</Company>
+    <Product>Choo²-TraderModding-ServerMod</Product>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="SPTarkov.Common" Version="4.0.1" />
     <PackageReference Include="SPTarkov.DI" Version="4.0.1" />
     <PackageReference Include="SPTarkov.Server.Core" Version="4.0.1" />
   </ItemGroup>
-  <!-- <ItemGroup>
-    <_ContentIncludedByDefault Remove="Server\ChooChoo-TraderModding\.eslintrc.json" />
-    <_ContentIncludedByDefault Remove="Server\ChooChoo-TraderModding\package-lock.json" />
-    <_ContentIncludedByDefault Remove="Server\ChooChoo-TraderModding\package.json" />
-    <_ContentIncludedByDefault Remove="Server\ChooChoo-TraderModding\tsconfig.json" />
-  </ItemGroup> -->
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="mkdir &quot;$(ProjectDir)..\..\..\SPT\user\mods\ChooChoo-TraderModding&quot;&#xA;xcopy /y &quot;$(TargetPath)&quot; &quot;$(ProjectDir)..\..\..\SPT\user\mods\ChooChoo-TraderModding&quot;&#xA;xcopy /y &quot;$(TargetDir)\$(TargetName).pdb&quot; &quot;$(ProjectDir)..\..\..\SPT\user\mods\ChooChoo-TraderModding&quot;&#xA;" />
+    <Exec Command="mkdir &quot;$(ProjectDir)..\..\..\SPT\user\mods\ChooChoo-TraderModding&quot;&#xA;xcopy /y &quot;$(TargetDir)\$(TargetName).dll&quot; &quot;$(ProjectDir)..\..\..\SPT\user\mods\ChooChoo-TraderModding&quot;&#xA;xcopy /y &quot;$(TargetDir)\$(TargetName).pdb&quot; &quot;$(ProjectDir)..\..\..\SPT\user\mods\ChooChoo-TraderModding&quot;&#xA;" />
   </Target>
 
   <ItemGroup>
