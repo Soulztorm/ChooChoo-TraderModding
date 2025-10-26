@@ -176,35 +176,20 @@ public class TraderModdingRouter : StaticRouter
         if (flea){
             RagfairConfig ragfairConfig = configServer.GetConfig<RagfairConfig>();
             var priceRange = ragfairConfig.Dynamic.PriceRanges.Default;
-            var unreasonableModPrices = ragfairConfig.Dynamic.UnreasonableModPrices[BaseClasses.MOD];
-            var offerAdjustment = ragfairConfig.Dynamic.OfferAdjustment.MaxPriceDifferenceBelowHandbookPercent * 0.01;
-            var priceOverMult = unreasonableModPrices.HandbookPriceOverMultiplier;
-            var priceAdjustedMult = unreasonableModPrices.NewPriceHandbookMultiplier;
             var templates = databaseService.GetItems();
             
             foreach (var titem in templates.Values)
             {
                 MongoId tplId = titem.Id;
                 // If this is already in the trader list, dont add to flea list
-                if (addedModTemplates.Contains(tplId)) continue;
-                
                 if (!itemHelper.IsOfBaseclass(tplId, BaseClasses.MOD) || 
+                    addedModTemplates.Contains(tplId) ||
                     !ragfairServerHelper.IsItemValidRagfairItem(new KeyValuePair<bool, TemplateItem?>(itemHelper.IsValidItem(tplId), titem)))
                     continue;
                 
-                // The price adjustment code below is fucked...
-                // I tried to replicate the logic from the server, doesn't add up.
+                // Get flea price with adjusted minimum range
                 var price = ragfairPriceService.GetFleaPriceForItem(tplId);
-                double? handbookPrice = ragfairPriceService.GetStaticPriceForItem(tplId);
-                if (handbookPrice.HasValue && handbookPrice > 1.0)
-                {
-                    if (price > priceOverMult * handbookPrice.Value)
-                    {
-                        price = priceAdjustedMult * handbookPrice.Value;
-                    }
-                }
-
-                price *= priceRange.Min * offerAdjustment;
+                price *= priceRange.Min;
 
                 ModInfoData mac = new ModInfoData()
                 {
