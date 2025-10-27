@@ -182,7 +182,7 @@ namespace TraderModding
                 TraderModdingUtils.AddItemPriceTag(modItemView, item, false);
 
             // Add to the list of items to buy if necessary
-            if (itemNeedsToBeBought && !Globals.traderModInfo[item.TemplateId].trader_id.IsNullOrEmpty())
+            if (itemNeedsToBeBought && (Globals.traderModInfo.TryGetValue(item.TemplateId, out var tinfo) && !tinfo.trader_id.IsNullOrEmpty()))
             {
                 Globals.itemsToBuy.Add(item.TemplateId);
                 
