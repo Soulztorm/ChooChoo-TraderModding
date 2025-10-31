@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using SPT.Reflection.Patching;
 using EFT.UI;
@@ -31,9 +33,8 @@ namespace TraderModding
             if (Globals.checkbox_availableOnly_toggle == null) { ConsoleScreen.LogError("Couldn't get checkbox for onlyAvailableItems"); return; }
 
             // Clone the existing checkbox and parent it to the toggle group
-            GameObject onlyTradersCheckbox = GameObject.Instantiate(Globals.checkbox_availableOnly_toggle.gameObject);
+            GameObject onlyTradersCheckbox = GameObject.Instantiate(Globals.checkbox_availableOnly_toggle.gameObject, Globals.checkbox_availableOnly_toggle.transform.parent, false);
             onlyTradersCheckbox.name = "OnlyTraders";
-            onlyTradersCheckbox.transform.SetParent(Globals.checkbox_availableOnly_toggle.transform.parent, false);
 
             // Attach script to the checkbox
             TraderModdingScript script = onlyTradersCheckbox.AddComponent<TraderModdingScript>();
@@ -153,6 +154,36 @@ namespace TraderModding
             
             Globals.quickbuyButtonCanvasGroup = quickbuyButton.GetComponent<CanvasGroup>();
             Globals.quickbuyButtonCanvasGroup.alpha = 0.4f;
+            
+            
+            
+            // Get all mods that exist
+            ItemFactoryClass itemFactoryClass = Singleton<ItemFactoryClass>.Instance;
+            if (itemFactoryClass == null)
+                return;
+
+            // Get all mods that exist, should be fine to do it only once when the build screen awakes
+            Globals.allmods = itemFactoryClass.CreateAllModsEver();
+            
+            // Create a fake stash to hold a pool of fake available items, we move mods in here when they should show up in the modding screen
+            Globals.fakestash = itemFactoryClass.CreateFakeStash();
+            Globals.fakestash.Grids[0] = new GClass3115(Guid.NewGuid().ToString(), 30, 1, true, Array.Empty<ItemFilter>(),  Globals.fakestash);
+            Globals.fakestashTraderController = new TraderControllerClass( Globals.fakestash, "TraderModdingStash", Guid.NewGuid().ToString(), false);
+            
+            // Set fake items stack size and lock state to be moved
+            foreach (Item item in Globals.allmods)
+            {
+                item.StackObjectsCount = item.StackMaxSize;
+                foreach (Item item2 in item.GetAllItems())
+                {
+                    item2.PinLockState = EItemPinLockState.Free;
+                }
+            }
+            
+            // Get the player profile
+            if (FieldInfos.EditBuildScreen_profile_0 == null) { ConsoleScreen.LogError("FieldInfo for profile == null"); return; }
+            Globals.profile = (Profile)FieldInfos.EditBuildScreen_profile_0.GetValue(__instance);
+            if (Globals.profile == null) { ConsoleScreen.LogError("profile == null"); }
         }
     }
 
@@ -216,10 +247,10 @@ namespace TraderModding
         public static void Postfix(EditBuildScreen __instance)
         {
             Globals.isOnModdingScreen = false;
-            Globals.itemsOnGun = new MongoID[0];
-            Globals.itemsInUse = new MongoID[0];
-            Globals.itemsInUseNonBuyable = new MongoID[0];
-            Globals.itemsAvailable = new MongoID[0];
+            Globals.itemsOnGun = Array.Empty<MongoID>();
+            Globals.itemsInUse = Array.Empty<MongoID>();
+            Globals.itemsInUseNonBuyable = Array.Empty<MongoID>();
+            Globals.itemsAvailable = Array.Empty<MongoID>();
             Globals.traderModInfo.Clear();
 
             TraderModdingUtils.ClearBuyAndDetachItems();

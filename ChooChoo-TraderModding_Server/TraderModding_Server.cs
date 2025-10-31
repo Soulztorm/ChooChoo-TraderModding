@@ -2,6 +2,7 @@
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Models.Common;
+using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Spt.Config;
@@ -108,7 +109,15 @@ public class TraderModdingRouter : StaticRouter
             return new ValueTask<string>("");
         }
 
-        HashSet<MongoId> addedModTemplates = new HashSet<MongoId>();
+        HashSet<MongoId> modAvailableFromTraders = new HashSet<MongoId>();
+
+        // Get any buy restriction modifiers for the profiles game version
+        double buyRestrictionMaxBonus = 1.0;
+        if (pmcData.Info != null && pmcData.Info.GameVersion != null &&
+            databaseService.GetGlobals().Configuration.TradingSettings.BuyRestrictionMaxBonus.TryGetValue(pmcData.Info.GameVersion, out var buyMaxBonus))
+        {
+            buyRestrictionMaxBonus = buyMaxBonus.Multiplier;
+        }
 
         foreach (var trader in databaseService.GetTraders())
         {
@@ -140,34 +149,46 @@ public class TraderModdingRouter : StaticRouter
                 
                 // Skip non mods
                 if (!itemHelper.IsOfBaseclass(item.Template, BaseClasses.MOD)) continue;
+                
                 // Skip empty barter schemes
                 if (!traderAssort.BarterScheme.TryGetValue(item.Id, out var barters) || barters.Count <= 0) continue;
                 
-                // TODO:
-                // Iterate over more than the first barter offer and find the cheapest?
-                var barterOffer = barters[0][0];
-                // Skip non money barters
-                if (!_money.ContainsKey(barterOffer.Template)) continue;
-                
-                if (item.Upd == null) continue;
-                if ((item.Upd.UnlimitedCount.HasValue && item.Upd.UnlimitedCount.Value) ||      // Unlimited stock
-                    (item.Upd.BuyRestrictionMax.GetValueOrDefault() != 0 && item.Upd.StackObjectsCount is > 0))    // Limited stack and still stock
+                // Find a valid barter scheme that accepts only money (in case there are multiples)
+                BarterScheme barterSchemeForItem = null;
+                foreach (var barter in barters)
+                {
+                    if (_money.ContainsKey(barter[0].Template))
+                    {
+                        barterSchemeForItem = barter[0];
+                        break;
+                    };
+                }
+                if (barterSchemeForItem == null || item.Upd == null) continue;
+
+                int buyrestrictionCurrent = item.Upd.BuyRestrictionCurrent.GetValueOrDefault(0);
+                int buyrestrictionMax = (int)(item.Upd.BuyRestrictionMax.GetValueOrDefault(0) * buyRestrictionMaxBonus);
+                bool buylimitReached = buyrestrictionMax != 0 && buyrestrictionCurrent >= buyrestrictionMax;
+
+                if (!buylimitReached &&                                                             // Personal buy limit not reached AND 
+                    ((item.Upd.UnlimitedCount.HasValue && item.Upd.UnlimitedCount.Value) ||         // unlimited stock
+                    (item.Upd.StackObjectsCount is > 0)))                                           // OR limited stack, but still stock in trader
                 {
                     ModInfoData mac = new ModInfoData()
                     {
                         tpl = item.Template,
-                        cost = getCostString(barterOffer),
+                        cost = getCostString(barterSchemeForItem),
                         tidx = traderIDX,
                         id = item.Id,
-                        lp = item.Upd.BuyRestrictionCurrent.GetValueOrDefault(),
-                        lm = item.Upd.BuyRestrictionMax.GetValueOrDefault()
+                        lp = buyrestrictionCurrent,
+                        lm = buyrestrictionMax
                     };
                     
                     allTraderData.modInfoData.Add(mac);
                 }
 
-                // Track added items for later flea query
-                addedModTemplates.Add(item.Template);
+                // Track trader items that did not reach restrictions 
+                if (!buylimitReached)
+                    modAvailableFromTraders.Add(item.Template);
             }
         }
         
@@ -183,7 +204,7 @@ public class TraderModdingRouter : StaticRouter
                 MongoId tplId = titem.Id;
                 // If this is already in the trader list, dont add to flea list
                 if (!itemHelper.IsOfBaseclass(tplId, BaseClasses.MOD) || 
-                    addedModTemplates.Contains(tplId) ||
+                    modAvailableFromTraders.Contains(tplId) ||
                     !ragfairServerHelper.IsItemValidRagfairItem(new KeyValuePair<bool, TemplateItem?>(itemHelper.IsValidItem(tplId), titem)))
                     continue;
                 
