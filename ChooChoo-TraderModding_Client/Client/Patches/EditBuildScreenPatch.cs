@@ -166,7 +166,7 @@ namespace TraderModding
             // Get all mods that exist, should be fine to do it only once when the build screen awakes
             Globals.allmods = itemFactoryClass.CreateAllModsEver();
             Array.Sort(Globals.allmods, 
-                (i1, i2) => String.Compare(i1.LocalizedShortName(), i2.LocalizedShortName(), StringComparison.OrdinalIgnoreCase));
+                (i2, i1) => String.Compare(i1.LocalizedShortName(), i2.LocalizedShortName(), StringComparison.InvariantCultureIgnoreCase));
 
             // Create a fake stash to hold a pool of fake available items, we move mods in here when they should show up in the modding screen
             Globals.fakestash = itemFactoryClass.CreateFakeStash();
@@ -202,6 +202,12 @@ namespace TraderModding
         public static void Postfix(EditBuildScreen __instance, EditBuildScreen.GClass3881 controller)
         {
             Globals.isOnModdingScreen = true;
+            
+            if (Globals.onlyAvailableWasOn)
+            {
+                Globals.checkbox_availableOnly_toggle.SetIsOnWithoutNotify(true);
+                Globals.checkbox_traderOnly_toggle.SetIsOnWithoutNotify(false);
+            }
             
             Globals.script.__session = controller.Session;
             
@@ -250,10 +256,11 @@ namespace TraderModding
         public static void Postfix(EditBuildScreen __instance)
         {
             Globals.isOnModdingScreen = false;
+            Globals.onlyAvailableWasOn = Globals.checkbox_availableOnly_toggle.isOn;
             Globals.itemsOnGun = Array.Empty<MongoID>();
-            Globals.itemsInUse = Array.Empty<MongoID>();
+            Globals.itemsInUseTemplates = Array.Empty<MongoID>();
             Globals.itemsInUseNonBuyable = Array.Empty<MongoID>();
-            Globals.itemsAvailable = Array.Empty<MongoID>();
+            Globals.itemsAvailable.Clear();
             Globals.traderModInfo.Clear();
 
             TraderModdingUtils.ClearBuyAndDetachItems();
@@ -287,7 +294,6 @@ namespace TraderModding
                     
                     Globals.script.GetItemsOnGun();
                     Globals.script.GetItemsInUse();
-                    Globals.script.GetItemsInUseNotPurchasable();
 
                     Globals.script.__instance.RefreshWeapon();
                 }

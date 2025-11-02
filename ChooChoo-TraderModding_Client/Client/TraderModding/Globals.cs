@@ -36,6 +36,7 @@ namespace TraderModding
     internal static class Globals
     {
         public static bool isOnModdingScreen = false;
+        public static bool onlyAvailableWasOn = false;
 
         // The main script
         public static TraderModdingScript script = null;
@@ -50,10 +51,10 @@ namespace TraderModding
 
         // Items in use etc.
         public static Item[] allmods = Array.Empty<Item>();
-        public static MongoID[] itemsInUse = Array.Empty<MongoID>();
+        public static MongoID[] itemsInUseTemplates = Array.Empty<MongoID>();
         public static List<Item> itemsInUse_realItem = new List<Item>();
         public static MongoID[] itemsInUseNonBuyable = Array.Empty<MongoID>();
-        public static MongoID[] itemsAvailable = Array.Empty<MongoID>();
+        public static HashSet<MongoID> itemsAvailable = new HashSet<MongoID>();
         public static MongoID[] itemsOnGun = Array.Empty<MongoID>();
 
         public static List<MongoID> itemsToBuy = new List<MongoID>();

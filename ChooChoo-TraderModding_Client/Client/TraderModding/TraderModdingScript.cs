@@ -45,7 +45,7 @@ namespace TraderModding
                 Globals.checkbox_traderOnly_toggle.SetIsOnWithoutNotify(false);
             }
 
-            __instance.method_41(onlyAvailable);
+            UpdateModView();
         }
 
         bool IsLooseItem(Item item)
@@ -74,11 +74,7 @@ namespace TraderModding
         {
             if (__instance == null)
                 return;
-
-            // If we only want to see available mods the BSG way (kekw), do nothing
-            if (__instance.enabled && Globals.checkbox_availableOnly_toggle != null && Globals.checkbox_availableOnly_toggle.isOn) 
-                return;
-
+            
             // Can't get the checkbox for some reason
             if (Globals.checkbox_traderOnly_toggle == null)
                 return;
@@ -87,35 +83,48 @@ namespace TraderModding
             Item[] playeritems_usable_mods = { };
             HashSet<MongoID> allmods_player = GetItems_Player(ref playeritems_usable_mods, TraderModdingConfig.ShowAttachedItems.Value);
             
+            
+            Array.Sort(playeritems_usable_mods, 
+                (i2, i1) => String.Compare(i1.LocalizedShortName(), i2.LocalizedShortName(), StringComparison.InvariantCultureIgnoreCase));
+            
             // Remove all items from fake stash to rebuild
             Globals.fakestash.Grid.RemoveAll();
             
-            if (traderData == null)
-            {
-                ConsoleScreen.LogError("Couldn't get traderdata, proceeding without it (Almost all features won't work. Please report this to me)");
-                foreach (Item item in Globals.allmods)
-                {
-                    Globals.fakestash.Grid.AddAnywhere(item, EErrorHandlingType.Throw);
-                }
-            }
-            else
+            
+            // Show only trader items
+            if (Globals.checkbox_traderOnly_toggle.isOn)
             {
                 foreach (Item item in Globals.allmods)
                 {
-                    if (Globals.checkbox_traderOnly_toggle.isOn)
-                    {
-                        bool traderHasMod = Globals.traderModInfo.ContainsKey(item.TemplateId) && Globals.traderModInfo[item.TemplateId].cost_string[0] != '0';
-                        if (!(
+                    bool traderHasMod = Globals.traderModInfo.ContainsKey(item.TemplateId) && Globals.traderModInfo[item.TemplateId].cost_string[0] != '0';
+                    if (!(
                             (TraderModdingConfig.InvertTraderSelection.Value ? !traderHasMod : traderHasMod) ||
                             Globals.itemsOnGun.Contains(item.TemplateId) ||
                             allmods_player.Contains(item.TemplateId)))
-                            continue;
-                    }
-                    
+                        continue;
+                
                     Globals.fakestash.Grid.AddAnywhere(item, EErrorHandlingType.Throw);
                 }
             }
+            // Show only available items
+            else if (Globals.checkbox_availableOnly_toggle.isOn)
+            {
+                foreach (Item item in Globals.allmods)
+                {
+                    if (!allmods_player.Contains(item.TemplateId))
+                        continue;
+                
+                    Globals.fakestash.Grid.AddAnywhere(item, EErrorHandlingType.Throw);
+                }
+            }
+            // Show all items
+            else
+            {
+                foreach (Item item in Globals.allmods)
+                    Globals.fakestash.Grid.AddAnywhere(item, EErrorHandlingType.Throw);
+            }
             
+
             GClass3468 manip = new GClass3468(__instance.InventoryController, new CompoundItem[] { (CompoundItem)Globals.fakestashTraderController.RootItem }, playeritems_usable_mods, Globals.profile, __session.RagFair.Available);
             __instance.UpdateManipulation(manip);
             __instance.RefreshWeapon();
@@ -205,24 +214,20 @@ namespace TraderModding
                 playeritems_usable_mods = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.AllExceptHideoutStashes).ToArray<Item>();
             else
                 playeritems_usable_mods = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.AllExceptHideoutStashes).Where(IsItemUsable).ToArray<Item>();
-
+            
             return new HashSet<MongoID>(playeritems_usable_mods.Select(mod => mod.TemplateId));
         }
 
         public void GetItemsInUse()
         {
             var allPlayerItems = __instance.InventoryController.Inventory.GetPlayerItems(EPlayerItems.AllExceptHideoutStashes);
-            Globals.itemsAvailable = allPlayerItems.Where(IsItemUsable).Select(mod => mod.TemplateId).ToArray();
-
-            Globals.itemsInUse_realItem = allPlayerItems.
-                Where(item => !Globals.itemsAvailable.Contains(item.TemplateId)).ToList();
-
-            Globals.itemsInUse = Globals.itemsInUse_realItem.Select(mod => mod.TemplateId).ToArray();
-        }
-
-        public void GetItemsInUseNotPurchasable()
-        {
-            Globals.itemsInUseNonBuyable = Globals.itemsInUse.Where(item => !traderData.modInfoData.Any(mod => mod.tpl == item)).ToArray();
+            
+            // Get all usable items, could be way more efficient than this linq spaghetti, but meh.
+            Globals.itemsAvailable = new HashSet<MongoID>(allPlayerItems.Where(IsItemUsable).Select(mod => mod.TemplateId));
+            Globals.itemsInUse_realItem = allPlayerItems.Where(item => !Globals.itemsAvailable.Contains(item.TemplateId)).ToList();
+            Globals.itemsInUseTemplates = Globals.itemsInUse_realItem.Select(mod => mod.TemplateId).ToArray();
+            Globals.itemsInUseNonBuyable = Globals.itemsInUseTemplates.Where(item => !traderData.modInfoData.Any(mod => mod.tpl == item)).ToArray();
+            
         }
 
         public void GetItemsOnGun()
@@ -259,23 +264,8 @@ namespace TraderModding
 
             // Get items in use
             GetItemsInUse();
-
-            // Get items in use that are not purchasable
-            GetItemsInUseNotPurchasable();
-
-            // Let's also fix BSG's bug that closing and reopening the modding screen can have the checkbox on without any effect
-            if (Globals.checkbox_availableOnly_toggle.isOn)
-            {
-                __instance.method_41(true);
-            }
-            else if (Globals.checkbox_traderOnly_toggle.isOn)
-            {
-                UpdateModView();
-            }
-            else
-            {
-                __instance.method_41(false);
-            }
+            
+            UpdateModView();
 
             UpdateBuildCostPanel();
         }
