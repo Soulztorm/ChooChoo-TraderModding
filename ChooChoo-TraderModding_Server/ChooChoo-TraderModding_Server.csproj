@@ -5,15 +5,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <!-- The two lines below will set the output path for the binaries -->
     <OutputPath>bin\$(Configuration)\$(ProjectName)\$(AssemblyName)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <AssemblyVersion>2.0.1</AssemblyVersion>
-    <FileVersion>2.0.1</FileVersion>
+    <AssemblyVersion>2.1.0</AssemblyVersion>
+    <FileVersion>2.1.0</FileVersion>
     <AssemblyName>ChooChoo-TraderModding</AssemblyName>
     <Company>Choo²</Company>
     <Product>Choo²-TraderModding-ServerMod</Product>
+    <Authors>Choo²</Authors>
+    <PackageId>ChooChoo-TraderModding_Server</PackageId>
+    <Description>Trader Modding Server Mod for SPT 4.0.X</Description>
+    <Copyright>MIT</Copyright>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DebugSymbols>false</DebugSymbols>
@@ -25,7 +29,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="mkdir &quot;$(ProjectDir)..\..\..\SPT\user\mods\ChooChoo-TraderModding&quot;&#xA;xcopy /y &quot;$(TargetDir)\$(TargetName).dll&quot; &quot;$(ProjectDir)..\..\..\SPT\user\mods\ChooChoo-TraderModding&quot;&#xA;xcopy /y &quot;$(TargetDir)\$(TargetName).pdb&quot; &quot;$(ProjectDir)..\..\..\SPT\user\mods\ChooChoo-TraderModding&quot;&#xA;" />
+    <Exec Command="mkdir &quot;$(ProjectDir)..\..\..\SPT\user\mods\ChooChoo-TraderModding&quot;&#xA;xcopy /y &quot;$(TargetDir)\$(TargetName).dll&quot; &quot;$(ProjectDir)..\..\..\SPT\user\mods\ChooChoo-TraderModding&quot;&#xA;xcopy /y &quot;$(TargetDir)\$(TargetName).pdb&quot; &quot;$(ProjectDir)..\..\..\SPT\user\mods\ChooChoo-TraderModding&quot;&#xA;&#xA;mkdir &quot;$(ProjectDir)..\Release\SPT\user\mods\ChooChoo-TraderModding&quot;&#xA;xcopy /y &quot;$(TargetPath)&quot; &quot;$(ProjectDir)..\Release\SPT\user\mods\ChooChoo-TraderModding&quot;&#xA;&#xA;powershell -Command &quot;Compress-Archive -Path '$(ProjectDir)..\Release\SPT', '$(ProjectDir)..\Release\BepInEx' -DestinationPath '$(ProjectDir)..\Release\$(SolutionName).zip' -Force&quot;" />
   </Target>
 
   <ItemGroup>

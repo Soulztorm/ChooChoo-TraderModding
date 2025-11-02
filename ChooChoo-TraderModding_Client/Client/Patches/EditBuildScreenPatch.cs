@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -164,7 +165,9 @@ namespace TraderModding
 
             // Get all mods that exist, should be fine to do it only once when the build screen awakes
             Globals.allmods = itemFactoryClass.CreateAllModsEver();
-            
+            Array.Sort(Globals.allmods, 
+                (i1, i2) => String.Compare(i1.LocalizedShortName(), i2.LocalizedShortName(), StringComparison.OrdinalIgnoreCase));
+
             // Create a fake stash to hold a pool of fake available items, we move mods in here when they should show up in the modding screen
             Globals.fakestash = itemFactoryClass.CreateFakeStash();
             Globals.fakestash.Grids[0] = new GClass3115(Guid.NewGuid().ToString(), 30, 1, true, Array.Empty<ItemFilter>(),  Globals.fakestash);

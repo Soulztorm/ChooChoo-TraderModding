@@ -142,6 +142,9 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /y "$(TargetPath)" "$(ProjectDir)..\..\..\BepInEx\plugins"</PostBuildEvent>
+    <PostBuildEvent>xcopy /y "$(TargetPath)" "$(ProjectDir)..\..\..\BepInEx\plugins"
+
+mkdir "$(ProjectDir)..\Release\BepInEx\plugins"
+xcopy /y "$(TargetPath)" "$(ProjectDir)..\Release\BepInEx\plugins"</PostBuildEvent>
   </PropertyGroup>
 </Project>

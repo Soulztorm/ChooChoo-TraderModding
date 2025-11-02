@@ -93,7 +93,7 @@ public class TraderModdingRouter : StaticRouter
         ];
     }
     
-    private static ValueTask<string> GetTraderMods(MongoId sessionId, bool flea)
+    private static ValueTask<string> GetTraderMods(MongoId sessionId, bool get_flea_items)
     {
         TraderData allTraderData = new TraderData
         {
@@ -118,7 +118,11 @@ public class TraderModdingRouter : StaticRouter
         {
             buyRestrictionMaxBonus = buyMaxBonus.Multiplier;
         }
+        
+        // Check for flea unlock
+        bool fleaUnlocked = (pmcData.Info != null && pmcData.Info.Level != null && pmcData.Info.Level >= databaseService.GetGlobals().Configuration.RagFair.MinUserLevel);
 
+        // Get trader data
         foreach (var trader in databaseService.GetTraders())
         {
             // Skip traders without assorts
@@ -166,8 +170,9 @@ public class TraderModdingRouter : StaticRouter
                 if (barterSchemeForItem == null || item.Upd == null) continue;
 
                 int buyrestrictionCurrent = item.Upd.BuyRestrictionCurrent.GetValueOrDefault(0);
-                int buyrestrictionMax = (int)(item.Upd.BuyRestrictionMax.GetValueOrDefault(0) * buyRestrictionMaxBonus);
-                bool buylimitReached = buyrestrictionMax != 0 && buyrestrictionCurrent >= buyrestrictionMax;
+                int buyrestrictionMax = item.Upd.BuyRestrictionMax.GetValueOrDefault(0);
+                int buyRestrictionMaxWithBonus = (int)(buyrestrictionMax * buyRestrictionMaxBonus);
+                bool buylimitReached = buyrestrictionMax == 0 || buyrestrictionCurrent >= buyrestrictionMax;
 
                 if (!buylimitReached &&                                                             // Personal buy limit not reached AND 
                     ((item.Upd.UnlimitedCount.HasValue && item.Upd.UnlimitedCount.Value) ||         // unlimited stock
@@ -180,7 +185,7 @@ public class TraderModdingRouter : StaticRouter
                         tidx = traderIDX,
                         id = item.Id,
                         lp = buyrestrictionCurrent,
-                        lm = buyrestrictionMax
+                        lm = buyRestrictionMaxWithBonus
                     };
                     
                     allTraderData.modInfoData.Add(mac);
@@ -193,8 +198,8 @@ public class TraderModdingRouter : StaticRouter
         }
         
         
-        
-        if (flea){
+        // Fetch items not available from traders from flea
+        if (get_flea_items && fleaUnlocked){
             RagfairConfig ragfairConfig = configServer.GetConfig<RagfairConfig>();
             var priceRange = ragfairConfig.Dynamic.PriceRanges.Default;
             var templates = databaseService.GetItems();
