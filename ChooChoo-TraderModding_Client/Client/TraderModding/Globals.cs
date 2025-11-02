@@ -1,3 +1,4 @@
+using System;
 using EFT;
 using EFT.InventoryLogic;
 using EFT.UI;
@@ -35,24 +36,33 @@ namespace TraderModding
     internal static class Globals
     {
         public static bool isOnModdingScreen = false;
+        public static bool onlyAvailableWasOn = false;
 
         // The main script
         public static TraderModdingScript script = null;
+        
+        // Profile
+        public static Profile profile = null;
 
         // Trader data
-        public static Dictionary<string, ModInfo> traderModInfo = new Dictionary<string, ModInfo>();
+        public static Dictionary<MongoID, ModInfo> traderModInfo = new Dictionary<MongoID, ModInfo>();
         public static int dollars_to_rubles = 0;
         public static int euros_to_rubles = 0;
 
         // Items in use etc.
-        public static MongoID[] itemsInUse = new MongoID[0];
+        public static Item[] allmods = Array.Empty<Item>();
+        public static MongoID[] itemsInUseTemplates = Array.Empty<MongoID>();
         public static List<Item> itemsInUse_realItem = new List<Item>();
-        public static MongoID[] itemsInUseNonBuyable = new MongoID[0];
-        public static MongoID[] itemsAvailable = new MongoID[0];
-        public static MongoID[] itemsOnGun = new MongoID[0];
+        public static MongoID[] itemsInUseNonBuyable = Array.Empty<MongoID>();
+        public static HashSet<MongoID> itemsAvailable = new HashSet<MongoID>();
+        public static MongoID[] itemsOnGun = Array.Empty<MongoID>();
 
         public static List<MongoID> itemsToBuy = new List<MongoID>();
         public static List<MongoID> itemsToDetach = new List<MongoID>();
+        
+        // Fake stash for the available items when modding
+        public static StashItemClass fakestash = null;
+        public static TraderControllerClass fakestashTraderController = null;
 
         // Gameobjects
         public static Toggle checkbox_availableOnly_toggle = null;

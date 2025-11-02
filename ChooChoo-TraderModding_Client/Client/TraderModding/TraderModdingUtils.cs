@@ -40,9 +40,7 @@ namespace TraderModding
                 traderData = TraderModdingUtils.GetTraderMods(flea);
             });
             task.Wait();
-
-            //ConsoleScreen.Log("Price dollar: " + traderData.dollar_to_ruble.ToString());
-            //ConsoleScreen.Log("Price euro: " + traderData.euro_to_ruble.ToString());
+            
             return traderData;
         }
 
@@ -153,7 +151,7 @@ namespace TraderModding
                 color = TraderModdingConfig.ColorAttachedNonBuyable.Value;
                 itemNeedsToBeDetached = true;
             }
-            else if (TraderModdingConfig.HighlightAttachedItems.Value && Globals.itemsInUse.Contains(item.TemplateId))
+            else if (TraderModdingConfig.HighlightAttachedItems.Value && Globals.itemsInUseTemplates.Contains(item.TemplateId))
             {
                 color = TraderModdingConfig.ColorAttached.Value;
                 needsBuying = true;

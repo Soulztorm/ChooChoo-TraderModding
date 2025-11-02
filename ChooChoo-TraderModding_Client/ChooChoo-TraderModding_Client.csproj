@@ -106,6 +106,7 @@
     <Reference Include="spt-singleplayer">
       <HintPath>..\..\..\BepInEx\plugins\spt\spt-singleplayer.dll</HintPath>
     </Reference>
+    <Reference Include="System" />
     <Reference Include="Unity.TextMeshPro, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\EscapeFromTarkov_Data\Managed\Unity.TextMeshPro.dll</HintPath>
@@ -141,6 +142,9 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /y "$(TargetPath)" "$(ProjectDir)..\..\..\BepInEx\plugins"</PostBuildEvent>
+    <PostBuildEvent>xcopy /y "$(TargetPath)" "$(ProjectDir)..\..\..\BepInEx\plugins"
+
+mkdir "$(ProjectDir)..\Release\BepInEx\plugins"
+xcopy /y "$(TargetPath)" "$(ProjectDir)..\Release\BepInEx\plugins"</PostBuildEvent>
   </PropertyGroup>
 </Project>
