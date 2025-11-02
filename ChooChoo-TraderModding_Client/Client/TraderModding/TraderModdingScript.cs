@@ -84,9 +84,9 @@ namespace TraderModding
             HashSet<MongoID> allmods_player = GetItems_Player(ref playeritems_usable_mods, TraderModdingConfig.ShowAttachedItems.Value);
             
             
-            Array.Sort(playeritems_usable_mods, 
-                (i2, i1) => String.Compare(i1.LocalizedShortName(), i2.LocalizedShortName(), StringComparison.InvariantCultureIgnoreCase));
-            
+            // Array.Sort(playeritems_usable_mods, 
+            //     (i2, i1) => String.Compare(i1.LocalizedShortName(), i2.LocalizedShortName(), StringComparison.InvariantCultureIgnoreCase));
+            //
             // Remove all items from fake stash to rebuild
             Globals.fakestash.Grid.RemoveAll();
             
