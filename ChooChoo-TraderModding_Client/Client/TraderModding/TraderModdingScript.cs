@@ -296,7 +296,7 @@ namespace TraderModding
                 }
                 
                 // Check if limit reached
-                if (modInfo.limit_current >= modInfo.limit_max)
+                if (modInfo.limit_max > 0 && modInfo.limit_current >= modInfo.limit_max)
                 {
                     NotificationManagerClass.DisplayWarningNotification(
                         itemToBuyMongoID.LocalizedShortName() + " limit reached (" + modInfo.limit_current + "/" + modInfo.limit_max + ")",

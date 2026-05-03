@@ -125,6 +125,8 @@ public class TraderModdingRouter : StaticRouter
         // Get trader data
         foreach (var trader in databaseService.GetTraders())
         {
+            TraderModding.logger.Info("Trader: " + trader.Key);
+            
             // Skip traders without assorts
             if (trader.Value.Assort == null) continue;
             
@@ -172,7 +174,7 @@ public class TraderModdingRouter : StaticRouter
                 int buyrestrictionCurrent = item.Upd.BuyRestrictionCurrent.GetValueOrDefault(0);
                 int buyrestrictionMax = item.Upd.BuyRestrictionMax.GetValueOrDefault(0);
                 int buyRestrictionMaxWithBonus = (int)(buyrestrictionMax * buyRestrictionMaxBonus);
-                bool buylimitReached = buyrestrictionMax == 0 || buyrestrictionCurrent >= buyrestrictionMax;
+                bool buylimitReached = buyrestrictionMax != 0 && buyrestrictionCurrent >= buyRestrictionMaxWithBonus;
 
                 if (!buylimitReached &&                                                             // Personal buy limit not reached AND 
                     ((item.Upd.UnlimitedCount.HasValue && item.Upd.UnlimitedCount.Value) ||         // unlimited stock
