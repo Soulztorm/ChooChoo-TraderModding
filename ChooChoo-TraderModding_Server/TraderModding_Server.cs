@@ -125,8 +125,6 @@ public class TraderModdingRouter : StaticRouter
         // Get trader data
         foreach (var trader in databaseService.GetTraders())
         {
-            TraderModding.logger.Info("Trader: " + trader.Key);
-            
             // Skip traders without assorts
             if (trader.Value.Assort == null) continue;
             
