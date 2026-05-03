@@ -1,5 +1,6 @@
 ﻿using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
+using SPTarkov.Server.Core.Extensions;
 using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
@@ -128,6 +129,9 @@ public class TraderModdingRouter : StaticRouter
             // Skip traders without assorts
             if (trader.Value.Assort == null) continue;
             
+            // Skip locked traders
+            if (!pmcData.TradersInfo[trader.Key].Unlocked.GetValueOrDefault(false)) continue;
+            
             TraderAssort traderAssort = traderAssortHelper.GetAssort(sessionId, trader.Key, false);
             if (traderAssort.Items.Count == 0)
                 continue;
@@ -168,15 +172,19 @@ public class TraderModdingRouter : StaticRouter
                     };
                 }
                 if (barterSchemeForItem == null || item.Upd == null) continue;
+                
+                
+                bool canBuyItem = true;
 
                 int buyrestrictionCurrent = item.Upd.BuyRestrictionCurrent.GetValueOrDefault(0);
-                int buyrestrictionMax = item.Upd.BuyRestrictionMax.GetValueOrDefault(0);
-                int buyRestrictionMaxWithBonus = (int)(buyrestrictionMax * buyRestrictionMaxBonus);
-                bool buylimitReached = buyrestrictionMax != 0 && buyrestrictionCurrent >= buyRestrictionMaxWithBonus;
-
-                if (!buylimitReached &&                                                             // Personal buy limit not reached AND 
-                    ((item.Upd.UnlimitedCount.HasValue && item.Upd.UnlimitedCount.Value) ||         // unlimited stock
-                    (item.Upd.StackObjectsCount is > 0)))                                           // OR limited stack, but still stock in trader
+                int buyRestrictionMaxWithBonus = (int)(item.Upd.BuyRestrictionMax.GetValueOrDefault(0) * buyRestrictionMaxBonus);
+                bool buylimitReached = item.HasBuyRestrictions() && buyRestrictionMaxWithBonus != 0 && buyrestrictionCurrent >= buyRestrictionMaxWithBonus;
+                canBuyItem &= !buylimitReached;
+                
+                canBuyItem &= ((item.Upd.UnlimitedCount.HasValue && item.Upd.UnlimitedCount.Value) ||           // unlimited stock
+                               (item.Upd.StackObjectsCount is > 0));                                            // OR limited stack, but still stock in trader
+                
+                if (canBuyItem)                                           
                 {
                     ModInfoData mac = new ModInfoData()
                     {
@@ -189,11 +197,8 @@ public class TraderModdingRouter : StaticRouter
                     };
                     
                     allTraderData.modInfoData.Add(mac);
-                }
-
-                // Track trader items that did not reach restrictions 
-                if (!buylimitReached)
                     modAvailableFromTraders.Add(item.Template);
+                }
             }
         }
         
